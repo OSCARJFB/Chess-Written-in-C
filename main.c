@@ -12,7 +12,7 @@
 #elif __APPLE__
     #define SYSTEM "clear"
 #endif
-
+ 
 void failed_allocation() {printf("Memory allocation failed:\nError exit with code -1"); exit(-1);}
 
 void getUserInput(int*,     int*, 
@@ -46,18 +46,34 @@ bool knight(int,              int,
             int,              int,
             char[SIZE][SIZE], bool);
 
-bool isUpperOrLower(char letter);
-           
-int main() {
+bool bishop(int,              int,
+            int,              int,
+            char[SIZE][SIZE], bool);
+
+bool queen(int,              int,
+           int,              int,
+           char[SIZE][SIZE], bool);
+
+bool king(int,              int,
+          int,              int,
+          char[SIZE][SIZE], bool);
+
+bool targetStatus(int,  int, 
+                  bool, char[8][8]); 
+
+bool isUpperOrLower(char);
+          
+int main() 
+{
     char chessBoard[SIZE][SIZE] = 
     {
         'R','K','B','W','Q','B','K','R',
         'P','P','P','P','P','P','P','P',
         ' ',' ',' ',' ',' ',' ',' ',' ',
+        ' ','Q',' ','W',' ',' ',' ',' ',
         ' ',' ',' ',' ',' ',' ',' ',' ',
         ' ',' ',' ',' ',' ',' ',' ',' ',
-        ' ',' ',' ',' ',' ',' ',' ',' ',
-        'p','p','p','p','p','p','p','p',
+        'p',' ',' ','p','p','p','p','p',
         'r','k','b','w','q','b','k','r'
     };
 
@@ -101,7 +117,7 @@ int main() {
         free(pieces_in_path);
     }
     
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 void getUserInput(int* x_sel,     int* y_sel, 
@@ -278,6 +294,7 @@ bool gameRules(int x_sel,                   int y_sel,
                int x_mov,                   int y_mov,
                char chessBoard[SIZE][SIZE], bool playerTurn) 
 {
+    // Action depending on piece being moved. 
     if(chessBoard[y_sel][x_sel] == 'P' || chessBoard[y_sel][x_sel] == 'p') 
     {
         return pawn(x_sel,      y_sel,
@@ -293,6 +310,24 @@ bool gameRules(int x_sel,                   int y_sel,
     else if(chessBoard[y_sel][x_sel] == 'K' || chessBoard[y_sel][x_sel] == 'k') 
     {
         return knight(x_sel,      y_sel, 
+                      x_mov,      y_mov, 
+                      chessBoard, playerTurn);
+    }
+    else if(chessBoard[y_sel][x_sel] == 'B' || chessBoard[y_sel][x_sel] == 'b') 
+    {
+        return bishop(x_sel,      y_sel, 
+                      x_mov,      y_mov, 
+                      chessBoard, playerTurn);
+    }
+    else if(chessBoard[y_sel][x_sel] == 'Q' || chessBoard[y_sel][x_sel] == 'q') 
+    {
+        return queen(x_sel,      y_sel, 
+                      x_mov,      y_mov, 
+                      chessBoard, playerTurn);
+    }
+    else if(chessBoard[y_sel][x_sel] == 'W' || chessBoard[y_sel][x_sel] == 'w') 
+    {
+        return king(x_sel,        y_sel, 
                       x_mov,      y_mov, 
                       chessBoard, playerTurn);
     }
@@ -347,68 +382,141 @@ bool rook(int x_sel,                   int y_sel,
           int x_mov,                   int y_mov,
           char chessBoard[SIZE][SIZE], bool playerTurn) 
 {
-    if(playerTurn == true) 
-    {
-        // Rook is moving on x-axis.
-        if(x_sel > x_mov && y_sel == y_mov && 
-           isUpperOrLower(chessBoard[y_mov][x_mov]) != true) return true;
-        else if(x_sel < x_mov && y_sel == y_mov && 
-                isUpperOrLower(chessBoard[y_mov][x_mov]) != true) return true;
+    // Vertical and horizontal movement.  
+    if(x_sel > x_mov && y_sel == y_mov)
+        goto next;
+    else if(x_sel < x_mov && y_sel == y_mov)
+        goto next;
+    else if(y_sel > y_mov && x_sel == x_mov)
+        goto next;
+    else if(y_sel < y_mov && x_sel == x_mov)
+        goto next;
+    else
+        return false;
 
-        // Rook is moving on y-axis.
-        if(y_sel > y_mov && x_sel == x_mov && 
-           isUpperOrLower(chessBoard[y_mov][x_mov]) != true) 
-           return true;
-        else if(y_sel < y_mov && x_sel == x_mov && 
-                isUpperOrLower(chessBoard[y_mov][x_mov]) != true) return true;
-    } 
-    if(playerTurn == false) 
-    {
-        // Rook is moving on x-axis.
-        if(x_sel > x_mov && y_sel == y_mov && 
-           isUpperOrLower(chessBoard[y_mov][x_mov]) != false) return true;
-        else if(x_sel < x_mov && y_sel == y_mov && 
-                isUpperOrLower(chessBoard[y_mov][x_mov]) != false) return true;
-
-        // Rook is moving on y-axis.
-        if(y_sel > y_mov && x_sel == x_mov && 
-           isUpperOrLower(chessBoard[y_mov][x_mov]) != false) return true;
-        else if(y_sel < y_mov && x_sel == x_mov && 
-                isUpperOrLower(chessBoard[y_mov][x_mov]) != false) return true;
-    }
-
-    return false;
+    next: 
+    return targetStatus(x_mov,      y_mov, 
+                        playerTurn, chessBoard);
 }
 
 bool knight(int x_sel,                   int y_sel,
             int x_mov,                   int y_mov,
             char chessBoard[SIZE][SIZE], bool playerTurn)
 {
-    
-    char aKnight = ' ';
-    if(playerTurn == true) aKnight = 'K';
-    else aKnight = 'k'; 
 
-    if(chessBoard[y_sel][x_sel] == aKnight) 
-    {   
-        // If target of move is equal to opponent or empty proceed else return false. 
-        if(playerTurn == true && (isUpperOrLower(chessBoard[y_mov][x_mov]) == false || chessBoard[y_mov][x_mov] == ' '))
-            goto target_is_t; 
-        else if(playerTurn == false && (isUpperOrLower(chessBoard[y_mov][x_mov]) == true || chessBoard[y_mov][x_mov] == ' ')) 
-            goto target_is_t;
-        else return false;  
+    // Check move pattern, if correct return true.  
+    if(y_mov == y_sel + 2 && (x_mov == x_sel + 1 || x_mov == x_sel - 1)) 
+        goto next;
+    else if(y_mov == y_sel - 2 && (x_mov == x_sel + 1 || x_mov == x_sel - 1))
+        goto next;
+    else if(x_mov == x_sel + 2 && (y_mov == y_sel + 1 || y_mov == y_sel - 1))
+        goto next;
+    else if(x_mov == x_sel - 2 && (y_mov == y_sel + 1 || y_mov == y_sel - 1))
+        goto next;
+    else 
+        return false; 
 
-        // Move target condition was correct. 
-        target_is_t: 
+    next:
 
-        // Check move pattern. If correct return true.  
-        if(y_mov == y_sel + 2 && (x_mov == x_sel + 1 || x_mov == x_sel - 1)) 
+    return targetStatus(x_mov,      y_mov,
+                        playerTurn, chessBoard); 
+}
+
+bool bishop(int x_sel,                   int y_sel,
+            int x_mov,                   int y_mov,
+            char chessBoard[SIZE][SIZE], bool playerTurn) 
+{
+    int differenceX = 0, differenceY = 0; 
+
+    // Diagonal movement. 
+    if(x_sel < x_mov)
+        differenceX = x_mov - x_sel;
+    else 
+        differenceX = x_sel - x_mov;
+
+    if(y_sel < y_mov)
+        differenceY = y_mov - y_sel;
+    else 
+        differenceY = y_sel - y_mov;
+
+    if(differenceX != differenceY) {
+        return false;
+    }
+        
+    return targetStatus(x_mov,      y_mov, 
+                        playerTurn, chessBoard);
+}
+
+bool queen(int x_sel,                   int y_sel,
+           int x_mov,                   int y_mov,
+           char chessBoard[SIZE][SIZE], bool playerTurn)
+{   
+    int differenceX = 0, differenceY = 0; 
+
+    // Diagonal movment. 
+    if(x_sel < x_mov)
+        differenceX = x_mov - x_sel;
+    else 
+        differenceX = x_sel - x_mov;
+
+    if(y_sel < y_mov)
+        differenceY = y_mov - y_sel;
+    else 
+        differenceY = y_sel - y_mov;
+
+    if(differenceX == differenceY)
+        return targetStatus(x_mov,      y_mov, 
+                            playerTurn, chessBoard);
+
+    // Vertical and horizontal movement. 
+    if(x_sel > x_mov && y_sel == y_mov)
+        goto next;
+    else if(x_sel < x_mov && y_sel == y_mov)
+        goto next;
+    else if(y_sel > y_mov && x_sel == x_mov)
+        goto next;
+    else if(y_sel < y_mov && x_sel == x_mov)
+        goto next;
+    else
+        return false;
+
+    next:
+
+    return targetStatus(x_mov,      y_mov, 
+                        playerTurn, chessBoard);
+}
+
+bool king(int x_sel,                   int y_sel,
+          int x_mov,                   int y_mov,
+          char chessBoard[SIZE][SIZE], bool playerTurn)
+{
+    // Make sure the kings movment is never greater than 1 in any direction. 
+    if(x_mov < x_sel + 2 && x_mov > x_sel - 2) 
+    {
+        if(y_mov < y_sel + 2 && y_mov > y_sel - 2) 
+            goto next;
+    }
+    else 
+       return false; 
+
+    next: 
+
+    return targetStatus(x_mov,      y_mov, 
+                        playerTurn, chessBoard);
+}
+
+bool targetStatus(int x_mov,       int y_mov,
+                  bool playerTurn, char chessBoard[8][8]) 
+{
+    // Evaluate status of the movement target for player 1 and player 2. 
+    if(playerTurn == true) 
+    {
+        if(chessBoard[y_mov][x_mov] == ' ' || isUpperOrLower(chessBoard[y_mov][x_mov]) == false)
             return true;
-        else if(y_mov == y_sel - 2 && (x_mov == x_sel + 1 || x_mov == x_sel - 1))
-            return true;
-        else if(x_mov == x_sel + 2 && (y_mov == y_sel + 1 || y_mov == y_sel - 1))
-            return true;
-        else if(x_mov == x_sel - 2 && (y_mov == y_sel + 1 || y_mov == y_sel - 1))
+    }
+    else if(playerTurn == false)
+    {
+        if(chessBoard[y_mov][x_mov] == ' ' || isUpperOrLower(chessBoard[y_mov][x_mov]) == true)
             return true;
     }
 
@@ -417,9 +525,9 @@ bool knight(int x_sel,                   int y_sel,
 
 bool isUpperOrLower(char letter) 
 {
-    // Possible because of ascii table values. 
-    if(letter >= 'A' && letter <= 'Z') // Range 101-132.
-        return true;   // Upper case.
+    // Possible because of ascii table value, range 101-132. 
+    if(letter >= 'A' && letter <= 'Z') 
+        return true;   // if upper case letter.
     else 
-        return false;  // Lower case. 
+        return false;  // if lower case letter. 
 }
