@@ -74,15 +74,16 @@ int main()
         'P','P','P','P','P','P','P','P',
         ' ',' ',' ',' ',' ',' ',' ',' ',
         ' ',' ',' ',' ',' ',' ',' ',' ',
-        ' ',' ',' ',' ',' ',' ',' ',' ',
+        ' ',' ',' ','W',' ',' ',' ',' ',
         ' ',' ',' ',' ',' ',' ',' ',' ',
         'p','p','p','p','p','p','p','p',
         'r','k','b','w','q','b','k','r'
     };
 
     int x_sel = 0, y_sel = 0, x_mov = 0, y_mov = 0;
-    int size = 0; 
+    int size_of_path = 0; 
     int* path;
+
     bool blocked = false;
     bool is_running = true, playerTurn = true;
     
@@ -97,11 +98,11 @@ int main()
         getUserInput(&x_sel, &y_sel,
                      &x_mov, &y_mov, playerTurn); 
 
-        // Scan the chess board.
+        // Scan the chess board, free returned data, since it wont be used.
         blocked = false;
         path = scanBoard(x_sel,          y_sel,
                          x_mov,          y_mov,
-                         chessBoard,     &size, &blocked);
+                         chessBoard,     &size_of_path, &blocked);
         free(path);
 
         // Execute next game move. 
@@ -233,7 +234,7 @@ void executeMove(int x_sel,                   int y_sel,
 
 int* scanBoard(int x_sel,                     int y_sel, 
                int x_mov,                     int y_mov,
-               char chessBoard[SIZE][SIZE],   int* size, bool* blocked) 
+               char chessBoard[SIZE][SIZE],   int* size_of_path, bool* blocked) 
 {   
     int index = 0, mult = 2;                                
     int* path = malloc(mult * sizeof(int));  
@@ -272,6 +273,7 @@ int* scanBoard(int x_sel,                     int y_sel,
         if(path == NULL) failed_allocation();
     } 
 
+    *size_of_path = index;
     return path;
 }
 
@@ -345,34 +347,35 @@ bool pawn(int x_sel,                   int y_sel,
 {
 
     if(playerTurn == true) {
-        if(y_sel == 1 && y_mov == y_sel + 2 && x_sel == x_mov) 
+        if(y_sel == 1 && y_mov == y_sel + 2 && x_sel == x_mov) // Start move. 
         {
             if(chessBoard[y_mov][x_mov] == ' ')
                 return true; 
         }
-        else if(y_mov == y_sel + 1 && x_sel == x_mov) 
+        else if(y_mov == y_sel + 1 && x_sel == x_mov) // Regular move. 
         {
             if(chessBoard[y_mov][x_mov] == ' ')
                 return true;
         } 
-        else if(y_mov == y_sel + 1 && x_sel != x_mov && chessBoard[y_mov][x_mov] != ' '){
+        else if(y_mov == y_sel + 1 && x_sel != x_mov && chessBoard[y_mov][x_mov] != ' ') // Attack move. 
+        {
             if(isUpperOrLower(chessBoard[y_mov][x_mov]) == false) // Is lower. 
                 return true;
         }    
     }
     else if(playerTurn == false) {
 
-        if(y_sel == 6 && y_mov == y_sel - 2 && x_sel == x_mov) 
+        if(y_sel == 6 && y_mov == y_sel - 2 && x_sel == x_mov) // Start move.
         {
             if(chessBoard[y_mov][x_mov] == ' ')
                 return true; 
         }
-        else if(y_mov == y_sel - 1 && x_sel == x_mov) 
+        else if(y_mov == y_sel - 1 && x_sel == x_mov) // Regular move. 
         {
             if(chessBoard[y_mov][x_mov] == ' ')
                 return true;
         } 
-        else if(y_mov == y_sel - 1 && x_sel != x_mov && chessBoard[y_mov][x_mov] != ' ')
+        else if(y_mov == y_sel - 1 && x_sel != x_mov && chessBoard[y_mov][x_mov] != ' ') // Attack move. 
         {
             if(isUpperOrLower(chessBoard[y_mov][x_mov]) == true) // Is upper. 
                 return true;
@@ -408,7 +411,7 @@ bool knight(int x_sel,                   int y_sel,
             char chessBoard[SIZE][SIZE], bool playerTurn)
 {
 
-    // Check move pattern, if correct return true.  
+    // Check move pattern, if correct continue else return false.  
     if(y_mov == y_sel + 2 && (x_mov == x_sel + 1 || x_mov == x_sel - 1)) 
         goto next;
     else if(y_mov == y_sel - 2 && (x_mov == x_sel + 1 || x_mov == x_sel - 1))
@@ -510,44 +513,53 @@ bool king(int x_sel,                   int y_sel,
 
     next: 
 
-    // Make sure move doesn't result in check. 
+    // Set king temp at move pos. 
+    if(playerTurn == true ) chessBoard[y_mov][x_mov] = 'W';
+    else chessBoard[y_mov][x_mov] = 'W';
+
+    // Make sure move doesn't result in check, free the returned value. 
     path = check(x_mov,      y_mov,
-                chessBoard, playerTurn, &is_check);
-    
+                 chessBoard, playerTurn, &is_check);
     free(path);
 
+    // Remove temp.
+    chessBoard[y_mov][x_mov] = ' ';
+
     // Check! return false!
-    if(is_check == true)
+    if(is_check == true) 
+    {
         return false; 
+    }
 
     // Makes sure status of movment target is correct. 
     return targetStatus(x_mov,      y_mov, 
                         playerTurn, chessBoard);
 }
 
+// This functions is decreped, and will for some reason be called recursive. 
 int* check(int x_mov,                    int  y_mov,
            char chessBoard[SIZE][SIZE],  bool playerTurn, bool* is_check) 
 {
     int* path; 
     bool blocked = false; 
-    int size = 0;
+    int size_of_path = 0;
+    // Check if location of king is under threat.
 
-    // Check if location of king is under threat. 
     for(int i = 0; i < SIZE; ++i)
     {
         for(int j = 0; j < SIZE; ++j)
         {
             if(playerTurn == true)
             {   // Try if any of player 2's pieces can move to target. 
-                if(isUpperOrLower(chessBoard[i][j]) == false && chessBoard[i][j] != 'w') 
+                if(isUpperOrLower(chessBoard[i][j]) == false && chessBoard[i][j] != 'w' && chessBoard[i][j] != ' ') 
                 {
                     if(gameRules(i,          j, 
                                  x_mov,      y_mov,
                                  chessBoard, false) == true) 
-                    {
+                   {
                         path = scanBoard(i,          j,
-                                         x_mov,      y_mov, 
-                                         chessBoard, &size, &blocked);
+                                        x_mov,      y_mov, 
+                                        chessBoard, &size_of_path, &blocked);
                         
                         if(blocked == false) 
                         {
@@ -557,9 +569,9 @@ int* check(int x_mov,                    int  y_mov,
                     }
                 }
             }
-            else 
+            if(playerTurn == false)
             {   // Try if any of player 1's pieces can move to target. 
-                if(isUpperOrLower(chessBoard[i][j]) == true && chessBoard[i][j] != 'W') 
+                if(isUpperOrLower(chessBoard[i][j]) == true && chessBoard[i][j] != 'W' && chessBoard[i][j] != ' ') 
                 {
                     if(gameRules(i,          j, 
                                  x_mov,      y_mov,
@@ -567,7 +579,7 @@ int* check(int x_mov,                    int  y_mov,
                     {
                         path = scanBoard(i,          j,
                                          x_mov,      y_mov, 
-                                         chessBoard, &size, &blocked);
+                                         chessBoard, &size_of_path, &blocked);
                         
                         if(blocked == false) 
                         {   
@@ -606,6 +618,6 @@ bool isUpperOrLower(char letter)
     // Possible because of ascii table value, range 101-132. 
     if(letter >= 'A' && letter <= 'Z') 
         return true;   // if upper case letter.
-    else 
+    else if(letter >= 'a' && letter <= 'z')
         return false;  // if lower case letter. 
 }
