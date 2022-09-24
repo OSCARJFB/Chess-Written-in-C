@@ -1,3 +1,8 @@
+/*
+ *	Author: Oscar Bergström.
+ *	Last edited 2022-09-24.
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -41,13 +46,14 @@ void drawConsole(char[SIZE][SIZE]);
 
 struct logic initGame(struct logic); 
 struct logic getUserInput(char[SIZE][SIZE], struct logic);
-struct logic executeMove(char[SIZE][SIZE], struct logic);
+struct logic executeMove(char chessBoard[SIZE][SIZE], struct logic L);
 
 int translateLetter(char);
-int* scanBoard(char[SIZE][SIZE], bool*, struct logic);
+int* scanBoard(char[SIZE][SIZE], struct logic, 
+               bool*,            bool);
 bool isUpperOrLower(char);
 
-bool checkmate(char chessBoard[SIZE][SIZE], int*, struct logic L);
+bool checkmate(char[SIZE][SIZE], int*, struct logic);
 bool lookForMoveAtTarget(char[SIZE][SIZE], struct logic,
                          int,              int);
 
@@ -65,11 +71,11 @@ int main(void)
     struct logic L;
     char chessBoard[SIZE][SIZE] = 
     {
-        'R','K','B','W','Q','B','K','R',
-        'P','P','P','P','P','P','P','P',
+        'R','K','B',' ','Q','B','K','R',
+        'P','P','P','W','P','P','P','P',
         ' ',' ',' ',' ',' ',' ',' ',' ',
         ' ',' ',' ',' ',' ',' ',' ',' ',
-        ' ',' ',' ',' ',' ',' ',' ',' ',
+        ' ','b',' ',' ',' ',' ',' ',' ',
         ' ',' ',' ',' ',' ',' ',' ',' ',
         'p','p','p','p','p','p','p','p',
         'r','k','b','w','q','b','k','r'
@@ -94,8 +100,8 @@ struct logic initGame(struct logic L)
     // Track kings position. 
     kingP1.kingX = 3;
     kingP1.kingY = 0;
-    kingP1.kingX = 3;
-    kingP1.kingY = 7;
+    kingP2.kingX = 3;
+    kingP2.kingY = 7;
 
     return L; 
 }
@@ -103,46 +109,19 @@ struct logic initGame(struct logic L)
 void runGame(char chessBoard[SIZE][SIZE], struct logic L) 
 {
     int* path;
-
     while(L.is_running == true) 
     {   
-        // Draw chess board in console. 
         drawConsole(chessBoard); 
-
-        // Get user input data. 
         L = getUserInput(chessBoard, L); 
+        path = scanBoard(chessBoard, L, &L.blocked, true);
+        L = executeMove(chessBoard, L);
+        if(checkmate(chessBoard, path, L))
+            break;
 
-        // Scan the chess board, free return data, since it won't be used.
-        L.blocked = false;
-        path = scanBoard(chessBoard, &L.blocked, L);
         free(path);
-
-        // Execute next game move. But only if the entered move is correct according to game rules.
-        if(L.blocked == false || chessBoard[L.y_sel][L.x_sel] == 'K' || chessBoard[L.y_sel][L.x_sel] == 'k') 
-        {   
-            // Game rules...
-            if(gameRules(chessBoard, L) == true) 
-            {
-                // Set move "target" to kings position.
-                if(L.playerTurn == true)
-                {
-                    if(lookForMoveAtTarget(chessBoard,   L, 
-                                           kingP1.kingX, kingP1.kingY) == false)
-                    {
-                        L = executeMove(chessBoard, L); 
-                    }
-                }
-                else
-                {
-                    if(lookForMoveAtTarget(chessBoard,   L, 
-                                           kingP2.kingX, kingP2.kingY) == false)
-                    {
-                        L = executeMove(chessBoard, L); 
-                    }
-                }
-            }
-        }
     }
+
+    printf("Checkmate");
     return;
 }
 
@@ -218,9 +197,54 @@ struct logic getUserInput(char chessBoard[SIZE][SIZE], struct logic L)
     return L;
 }
 
+struct logic executeMove(char chessBoard[SIZE][SIZE], struct logic L) 
+{
+    char temp = ' ';
+
+    if(L.blocked == false || chessBoard[L.y_sel][L.x_sel] == 'K' || chessBoard[L.y_sel][L.x_sel] == 'k') 
+    {   
+        if(gameRules(chessBoard, L) == true) 
+        {
+            temp = chessBoard[L.y_mov][L.x_mov];
+            chessBoard[L.y_mov][L.x_mov] = chessBoard[L.y_sel][L.x_sel];
+            chessBoard[L.y_sel][L.x_sel] = ' ';
+
+            // Set move "target" to kings position.
+            if(L.playerTurn == true)
+            {
+                if(lookForMoveAtTarget(chessBoard,   L, 
+                                        kingP1.kingX, kingP1.kingY) == false)
+                {
+                    L.playerTurn = false;
+                }
+                else
+                {
+                    chessBoard[L.y_sel][L.x_sel] = chessBoard[L.y_mov][L.x_mov];
+                    chessBoard[L.y_mov][L.x_mov] = temp;
+                }
+            }
+            else
+            {
+                if(lookForMoveAtTarget(chessBoard,   L, 
+                                        kingP2.kingX, kingP2.kingY) == false)
+                {
+                    L.playerTurn = true;
+                }
+                else
+                {
+                    chessBoard[L.y_sel][L.x_sel] = chessBoard[L.y_mov][L.x_mov];
+                    chessBoard[L.y_mov][L.x_mov] = temp;
+                }
+            }
+        }
+    }
+
+    return L;
+}
+
 int translateLetter(char letter) 
 {
-    // Check if char letter correspond to any of the following:
+    // If char letter correspond to any of the following:
     if(letter == 'a' || letter == 'A')
         return 0;
     else if(letter == 'b' || letter == 'B')
@@ -241,48 +265,48 @@ int translateLetter(char letter)
     return -1;
 }
 
-struct logic executeMove(char chessBoard[SIZE][SIZE], struct logic L)
-{
-    // Set move target equal to select target.
-    chessBoard[L.y_mov][L.x_mov] = chessBoard[L.y_sel][L.x_sel];
-    
-    // Selected target is set to empty. 
-    chessBoard[L.y_sel][L.x_sel] = ' ';
-    
-    // Game turn is done done, swap turn. 
-    if(L.playerTurn == true) L.playerTurn = false;
-    else L.playerTurn = true; 
-
-    return L;
-}
-
-int* scanBoard(char chessBoard[SIZE][SIZE], bool* blocked, struct logic L) 
+int* scanBoard(char chessBoard[SIZE][SIZE], struct logic L,
+               bool* blocked,               bool allocateMem) 
 {   
     int index = 0, mult = 2; 
-    int x = L.x_sel, y = L.y_sel;    
+    int x = L.x_sel, y = L.y_sel; 
+    int* path;
+    
+    *blocked = false;   
 
-    int* path = malloc(mult * sizeof(int));  
-    if(path == NULL) failed_allocation(); 
+    if(allocateMem == true)
+    {
+        path = malloc(mult * sizeof(int));  
+        if(path == NULL) failed_allocation(); 
+    }
 
     // If selected piece is a knight, do special case. 
     if(chessBoard[L.y_sel ][L.x_sel]== 'K' || chessBoard[L.y_sel ][L.x_sel]== 'k')
     {
-        path[index++] = y;    
-        path[index] = x;
-        return path;
+        if(allocateMem == true)
+        {
+            path[index++] = y;    
+            path[index] = x;
+            return path;
+        }
+        else
+            return NULL; 
     }        
 
     // Loop untill selection is equal to target. 
     while(x != L.x_mov || y != L.y_mov)
     {   
         // Add coordinates of each step and increase allocated data size. 
-        path[index++] = y;    
-        path[index++] = x;
+        if(allocateMem == true)
+        {
+            path[index++] = y;    
+            path[index++] = x;
         
-        // increase amount of alocated bytes. 
-        mult += 2;   
-        path = realloc(path, mult * sizeof(int)); 
-        if(path == NULL) failed_allocation();
+            // increase amount of alocated bytes. 
+            mult += 2;   
+            path = realloc(path, mult * sizeof(int)); 
+            if(path == NULL) failed_allocation();
+        }
 
         // Iterate x. 
         if(L.x_mov > x) 
@@ -302,10 +326,11 @@ int* scanBoard(char chessBoard[SIZE][SIZE], bool* blocked, struct logic L)
         
         // Execute if path is not equal to empty and end target is not reached. 
         if(chessBoard[y][x] != ' ') 
-            *blocked = L.blocked = true;
+            *blocked = true;
     } 
-
-    return path;
+    
+    if(allocateMem == true) return path;
+    else return NULL;
 }
 
 void drawConsole(char chessBoard[SIZE][SIZE]) 
@@ -527,13 +552,16 @@ bool king(char chessBoard[SIZE][SIZE], struct logic L)
 }
 
 bool lookForMoveAtTarget(char chessBoard[SIZE][SIZE], struct logic L, 
-                 int targetX,                 int targetY) 
+                         int targetX,                 int targetY) 
 { 
-    int* temp;
-
-    L.y_mov = targetX;
+    L.x_mov = targetX;
     L.y_mov = targetY;
+    L.blocked = true; 
 
+    if(L.playerTurn == true) L.playerTurn = false;
+    else L.playerTurn = true;
+
+    // Loop the chess board an look if a move is possible against the target. 
     for(int i = 0; i < SIZE; ++i) 
     {
         for(int j = 0; j < SIZE; ++j) 
@@ -541,32 +569,30 @@ bool lookForMoveAtTarget(char chessBoard[SIZE][SIZE], struct logic L,
             L.y_sel = i;
             L.x_sel = j;
 
-            if(L.playerTurn == true && isUpperOrLower(chessBoard[i][j]) == false) 
+            // Will only pick pieces of type lower(player one) upper(player two).
+            // Finally try make a move against the target. 
+            if(L.playerTurn == false && isUpperOrLower(chessBoard[i][j]) == false && chessBoard[i][j] != ' ') 
             {   
                 if(gameRules(chessBoard, L) == true) 
                 {
-                    temp = scanBoard(chessBoard, &L.blocked,  L);
-                    free(temp);
+                    scanBoard(chessBoard, L, &L.blocked,  false);
 
-                    if(L.blocked == false)
+                    if(L.blocked == false) 
                         return true;
                 }
             } 
-            else if(L.playerTurn == false && isUpperOrLower(chessBoard[i][j]) == true) 
+            else if(L.playerTurn == true && isUpperOrLower(chessBoard[i][j]) == true) 
             {
                 if(gameRules(chessBoard, L) == true) 
                 {
-                    temp = scanBoard(chessBoard, &L.blocked, L);
-                    free(temp);
-
-                    if(L.blocked == false)
+                    scanBoard(chessBoard, L, &L.blocked,  false);
+                
+                    if(L.blocked == false)  
                         return true;
                 }
             }
         }
     }
-
-    free(temp);
 
     return false; 
 }
@@ -595,5 +621,90 @@ bool isUpperOrLower(char letter)
     if(letter >= 'A' && letter <= 'Z') 
         return true;   
     else if(letter >= 'a' && letter <= 'z')
-        return false;   
+        return false; 
+
+    if(letter == ' ')
+        return false;  
+}
+
+bool checkmate(char chessBoard[SIZE][SIZE], int* path, struct logic L)
+{
+    // Will get the kings position. 
+    int x = 0, y = 0;
+    bool can_move_king = false; 
+
+    // Tracks if kings is in check or not. 
+    if(L.playerTurn == false)
+    { 
+        if(lookForMoveAtTarget(chessBoard, L, kingP1.kingX, kingP1.kingY) == false)
+            return false;
+
+        y = kingP1.kingY;
+        x = kingP1.kingX;
+    }
+    else 
+    {
+        if(lookForMoveAtTarget(chessBoard, L, kingP2.kingX, kingP2.kingY) == false)
+            return false;
+
+        y = kingP2.kingY;
+        x = kingP2.kingX;
+    }
+
+    printf("Test one done!\n");
+    system("pause");
+
+    // Scan the kings surroundings for a possiblity to move out of danger. 
+    for(int i = 0; i < SIZE; ++i) 
+    {
+        // Represents all surrounding squares around the kings position. 
+        switch (i)
+        {
+            case 0:
+                y--; 
+                break;
+            case 1: 
+                x++;
+                break;
+            case 2:
+                y++;
+                break;
+            case 3: 
+                y++;
+                break;
+            case 4: 
+                x--;
+                break;
+            case 5: 
+                x--;
+                break;
+            case 6:
+                y--;
+                break;
+            case 7: 
+                y--;
+                break;
+        }
+
+        if(lookForMoveAtTarget(chessBoard, L, x, y) == true)
+            can_move_king = true; 
+    }
+
+    if(can_move_king == true)
+        return false; 
+
+    printf("Test two done!\n");
+        system("pause");
+
+    // Finally, see if the threat be removed or blocked.
+    for(int i = 0; i < sizeof(path); i += 2) 
+    {
+        if(lookForMoveAtTarget(chessBoard, L, path[i - 1], path[i]) == true)
+            return false;  
+    }
+
+    printf("Test three done!\n");
+        system("pause");
+
+    return true; 
 }
