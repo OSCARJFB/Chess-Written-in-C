@@ -72,11 +72,11 @@ int main(void)
     struct logic L;
     char chessBoard[SIZE][SIZE] = 
     {
-        'R','P','P','W','P','P','K','R',
-        'P','P','P',' ','P','P','P','P',
+        'R','K','B','W','Q','B','K','R',
+        'P','P','P','P','P','P','P','P',
         ' ',' ',' ',' ',' ',' ',' ',' ',
         ' ',' ',' ',' ',' ',' ',' ',' ',
-        ' ',' ',' ',' ','q',' ',' ',' ',
+        ' ',' ',' ',' ',' ',' ',' ',' ',
         ' ',' ',' ',' ',' ',' ',' ',' ',
         'p','p','p','p','p','p','p','p',
         'r','k','b','w','q','b','k','r'
@@ -97,10 +97,8 @@ struct logic initGame(struct logic L)
     L.playerTurn = true;
     
     // Track kings position. 
-    kingP1.kingX = 3;
-    kingP1.kingY = 0;
-    kingP2.kingX = 3;
-    kingP2.kingY = 7;
+    kingP1.kingX = 3, kingP1.kingY = 0;
+    kingP2.kingX = 3, kingP2.kingY = 7;
 
     return L; 
 }
@@ -645,11 +643,10 @@ bool checkmate(char chessBoard[SIZE][SIZE], struct logic L)
     // Will get the kings position. 
     int x = 0, y = 0;
     int sizeOfArray = 0;
+    int attackerX = 0, attackerY = 0;
 
     L.x_sel = L.x_mov;
     L.y_sel = L.y_mov;
-
-    int attackerX = 0, attackerY = 0;
 
     // Tracks if kings is in check or not. 
     if(L.playerTurn == true)
@@ -660,9 +657,7 @@ bool checkmate(char chessBoard[SIZE][SIZE], struct logic L)
                                &attackerX,   &attackerY) == false) 
             return false;
 
-        y = kingP1.kingY;
-        x = kingP1.kingX;
-        L.playerTurn = true;
+        y = kingP1.kingY, x = kingP1.kingX;
     }
     else 
     {
@@ -672,9 +667,7 @@ bool checkmate(char chessBoard[SIZE][SIZE], struct logic L)
                                &attackerX,   &attackerY) == false)
             return false;
 
-        y = kingP2.kingY;
-        x = kingP2.kingX;
-        L.playerTurn = false;
+        y = kingP2.kingY, x = kingP2.kingX;
     }
 
     // Scan the kings surroundings for a possiblity to move out of danger. 
@@ -709,25 +702,21 @@ bool checkmate(char chessBoard[SIZE][SIZE], struct logic L)
                 break;
         }
 
-        if(L.playerTurn == true) 
+        if(L.playerTurn == false) 
         {
             if((chessBoard[y][x] == ' ' || isUpperOrLower(chessBoard[y][x]) == false) && 
                 y >= 0 && y <= 7 && x >= 0 && x <= 7)
             {
-                if(lookForMoveAtTarget(chessBoard, L, x, y, NULL, NULL) == true)
-                {
-                    printf("%d %d\n", y, x);
-                    system("pause");
+                if(lookForMoveAtTarget(chessBoard, L, x, y, NULL, NULL) == false)
                     return false;
-                }
             }
         }
         else 
         {
-            if((chessBoard[y][x] == ' ' || isUpperOrLower(chessBoard[y][x]) == true) &&
+            if((chessBoard[y][x] == ' ' || isUpperOrLower(chessBoard[y][x]) == false) &&
                 y >= 0 && y <= 7 && x >= 0 && x <= 7)
             {
-                if(lookForMoveAtTarget(chessBoard, L, x, y, NULL, NULL) == true)
+                if(lookForMoveAtTarget(chessBoard, L, x, y, NULL, NULL) == false)
                     return false;
             }
         }
@@ -740,25 +729,30 @@ bool checkmate(char chessBoard[SIZE][SIZE], struct logic L)
     L.x_sel = attackerX, L.y_sel = attackerY; 
     L.x_mov = x, L.y_mov = y; 
 
+    (L.playerTurn == true) ? (L.playerTurn = false) : (L.playerTurn = true);
+
     // Get attackers path to the target.
     int* path = scanBoard(chessBoard, L, &L.blocked, true, &sizeOfArray);
     
     // Finally, see if the threat be removed or blocked.
     chessBoard[L.y_mov][L.x_mov] = ' ';
 
-    for(int i = 0; i < sizeOfArray; i+=2) 
-        if(lookForMoveAtTarget(chessBoard, L, path[i], path[i + 1], &attackerX, &attackerY) == true)
+    for(int i = 0; i < sizeOfArray; i+=2)
+    {
+        if(lookForMoveAtTarget(chessBoard, L, path[i + 1], path[i], &attackerX, &attackerY) == true)
         {
             (L.playerTurn == true) ? (chessBoard[L.y_mov][L.x_mov] = 'W') : (chessBoard[L.y_mov][L.x_mov] = 'w'); 
             free(path);
             drawConsole(chessBoard);
-            printf("Hello World");
-            system("pause");
+
             return false;
         }
+    }
     (L.playerTurn == true) ? (chessBoard[L.y_mov][L.x_mov] = 'W') : (chessBoard[L.y_mov][L.x_mov] = 'w'); 
+    
     
     free(path);
     drawConsole(chessBoard);
+
     return true; 
 }
