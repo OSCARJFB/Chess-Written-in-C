@@ -85,7 +85,7 @@ int main(void)
     L = initGame(L);
     runGame(chessBoard, L);
 
-    return EXIT_SUCCESS;
+    return 0;
 }
 
 struct logic initGame(struct logic L) 
@@ -645,8 +645,7 @@ bool checkmate(char chessBoard[SIZE][SIZE], struct logic L)
     int sizeOfArray = 0;
     int attackerX = 0, attackerY = 0;
 
-    L.x_sel = L.x_mov;
-    L.y_sel = L.y_mov;
+    L.x_sel = L.x_mov, L.y_sel = L.y_mov;
 
     // Tracks if kings is in check or not. 
     if(L.playerTurn == true)
@@ -736,15 +735,15 @@ bool checkmate(char chessBoard[SIZE][SIZE], struct logic L)
     
     // Finally, see if the threat be removed or blocked.
     chessBoard[L.y_mov][L.x_mov] = ' ';
-
+    
     for(int i = 0; i < sizeOfArray; i+=2)
     {
         if(lookForMoveAtTarget(chessBoard, L, path[i + 1], path[i], &attackerX, &attackerY) == true)
         {
             (L.playerTurn == true) ? (chessBoard[L.y_mov][L.x_mov] = 'W') : (chessBoard[L.y_mov][L.x_mov] = 'w'); 
+
             free(path);
             drawConsole(chessBoard);
-
             return false;
         }
     }
