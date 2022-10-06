@@ -72,11 +72,11 @@ int main(void)
     struct logic L;
     char chessBoard[SIZE][SIZE] = 
     {
-        'R','K','B','W','Q','B','K','R',
-        'P','P','P','P','P','P','P','P',
+        'R','P',' ','W','P','B','K','R',
+        'P','P','P',' ','P','P','P','P',
         ' ',' ',' ',' ',' ',' ',' ',' ',
         ' ',' ',' ',' ',' ',' ',' ',' ',
-        ' ',' ',' ',' ',' ',' ',' ',' ',
+        ' ',' ',' ',' ','q',' ',' ',' ',
         ' ',' ',' ',' ',' ',' ',' ',' ',
         'p','p','p','p','p','p','p','p',
         'r','k','b','w','q','b','k','r'
@@ -135,7 +135,7 @@ struct logic getUserInput(char chessBoard[SIZE][SIZE], struct logic L)
     // Get any character input untill ENTER is pressed. 
     while(key_pressed != ENTER) 
     {
-        scanf("%c", &key_pressed); 
+        key_pressed = getchar();
 
         // If not ENTER. 
         if(key_pressed != ENTER) 
@@ -203,7 +203,7 @@ struct logic executeMove(char chessBoard[SIZE][SIZE], struct logic L)
             chessBoard[L.y_mov][L.x_mov] = chessBoard[L.y_sel][L.x_sel];
             chessBoard[L.y_sel][L.x_sel] = ' ';
 
-            // Set move "target" to kings position.
+            // Set movement "target" to kings position.
             if(L.playerTurn == true)
             {
                 L.playerTurn = false;
@@ -236,7 +236,7 @@ struct logic executeMove(char chessBoard[SIZE][SIZE], struct logic L)
             }
         }
     }
-
+    (L.playerTurn == true) ? (L.playerTurn = false) : (L.playerTurn = true); 
     return L;
 }
 
