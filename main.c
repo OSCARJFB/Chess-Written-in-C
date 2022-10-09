@@ -1,8 +1,8 @@
 /*
  *	Author: Oscar Bergström.
- *	Last edited 2022-10-06.
+ *	Last edited: 2022-10-09:16:50 UTC+1.
+ *  This is a chess game, able to run as a console application on Linux, Windows and MacOS.
  */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -40,7 +40,7 @@ typedef struct kingTracker
 kingXY kingP1;
 kingXY kingP2;
 
-void failed_allocation(void) {printf("Memory allocation failed:\nError exit with code 1"); exit(EXIT_FAILURE);}
+void failed_allocation(void) {printf("Memory allocation failed:\nError exit with return code 1"); exit(1);}
 void runGame(char[SIZE][SIZE], struct logic);
 void drawConsole(char[SIZE][SIZE]);
 
@@ -72,10 +72,10 @@ int main(void)
     struct logic L;
     char chessBoard[SIZE][SIZE] = 
     {
-        'R','P',' ','W','P','B','K','R',
-        'P','P','P',' ','P','P','P','P',
+        'R','K','B','W','Q','B','K','R',
+        'P','P','P','P','P','P','P','P',
         ' ',' ',' ',' ',' ',' ',' ',' ',
-        ' ',' ',' ',' ','q',' ',' ',' ',
+        ' ',' ',' ',' ',' ',' ',' ',' ',
         ' ',' ',' ',' ',' ',' ',' ',' ',
         ' ',' ',' ',' ',' ',' ',' ',' ',
         'p','p','p','p','p','p','p','p',
@@ -84,7 +84,7 @@ int main(void)
 
     L = initGame(L);
     runGame(chessBoard, L);
-
+    
     return 0;
 }
 
