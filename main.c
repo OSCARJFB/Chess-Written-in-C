@@ -72,10 +72,10 @@ int main(void)
     struct logic L;
     char chessBoard[SIZE][SIZE] = 
     {
-        'R','K','B','W','Q','B','K','R',
-        'P','P','P','P','P','P','P','P',
+        'R','P',' ','W','P','B','K','R',
+        'P','P','P',' ','P','P','P','P',
         ' ',' ',' ',' ',' ',' ',' ',' ',
-        ' ',' ',' ',' ',' ',' ',' ',' ',
+        ' ',' ',' ',' ','q',' ',' ',' ',
         ' ',' ',' ',' ',' ',' ',' ',' ',
         ' ',' ',' ',' ',' ',' ',' ',' ',
         'p','p','p','p','p','p','p','p',
@@ -130,7 +130,7 @@ struct logic getUserInput(char chessBoard[SIZE][SIZE], struct logic L)
     if (L.playerTurn == true) 
         printf("Player one enter a move:");
     else
-        printf("Player two enter a move: ");
+        printf("Player two enter a move:");
     
     // Get any character input untill ENTER is pressed. 
     while(key_pressed != ENTER) 
@@ -206,7 +206,7 @@ struct logic executeMove(char chessBoard[SIZE][SIZE], struct logic L)
             // Set movement "target" to kings position.
             if(L.playerTurn == true)
             {
-                L.playerTurn = false;
+                L.playerTurn = false; 
                 if(lookForMoveAtTarget(chessBoard,    L, 
                                        kingP1.kingX, kingP1.kingY, 
                                        NULL,         NULL) == false)
@@ -215,13 +215,14 @@ struct logic executeMove(char chessBoard[SIZE][SIZE], struct logic L)
                 }
                 else
                 {
+                    L.playerTurn = true; 
                     chessBoard[L.y_sel][L.x_sel] = chessBoard[L.y_mov][L.x_mov];
                     chessBoard[L.y_mov][L.x_mov] = temp;
                 }
             }
             else
             {
-                L.playerTurn = true;
+                 L.playerTurn = true; 
                 if(lookForMoveAtTarget(chessBoard,   L, 
                                        kingP2.kingX, kingP2.kingY,
                                        NULL,         NULL) == false)
@@ -230,13 +231,14 @@ struct logic executeMove(char chessBoard[SIZE][SIZE], struct logic L)
                 }
                 else
                 {
+                    L.playerTurn = false; 
                     chessBoard[L.y_sel][L.x_sel] = chessBoard[L.y_mov][L.x_mov];
                     chessBoard[L.y_mov][L.x_mov] = temp;
                 }
             }
         }
     }
-    (L.playerTurn == true) ? (L.playerTurn = false) : (L.playerTurn = true); 
+
     return L;
 }
 
