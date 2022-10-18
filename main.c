@@ -1,6 +1,6 @@
 /*
- *	Author: Oscar Bergström.
- *	Last edited: 2022-10-09:16:50 UTC+1.
+ *	Author: Oscar Bergstrom.
+ *	Last edited: 2022-10-17:20:17 UTC+1.
  *  This is a chess game, able to run as a console application on Linux, Windows and MacOS.
  */
 #include <stdlib.h>
@@ -22,19 +22,14 @@
 
 struct logic
 {
-    int x_sel; 
-    int y_sel; 
-    int x_mov; 
-    int y_mov;
-    bool is_running;
-    bool playerTurn;
-    bool blocked; 
+    int x_sel, y_sel; 
+    int x_mov, y_mov;
+    bool is_running, playerTurn, blocked; 
 }; 
 
 typedef struct kingTracker 
 {
-    int kingX;
-    int kingY;
+    int kingX, kingY;
 }kingXY;
 
 kingXY kingP1;
@@ -90,13 +85,11 @@ int main(void)
 
 struct logic initGame(struct logic L) 
 {
-    // Initialize movement variables, set game turn status equal running with player1 making the first move. 
     L.x_sel = -1, L.y_sel = -1; 
     L.x_mov = -1, L.y_mov = -1; 
-    L.is_running = true;
-    L.playerTurn = true;
     
-    // Track kings position. 
+    L.is_running = true, L.playerTurn = true;
+
     kingP1.kingX = 3, kingP1.kingY = 0;
     kingP2.kingX = 3, kingP2.kingY = 7;
 
@@ -126,18 +119,13 @@ struct logic getUserInput(char chessBoard[SIZE][SIZE], struct logic L)
 
     int key_pressed = 0, sizeOfArray = 0; 
     
-    // Display message before input. 
-    if (L.playerTurn == true) 
-        printf("Player one enter a move:");
-    else
-        printf("Player two enter a move:");
-    
-    // Get any character input untill ENTER is pressed. 
+    (L.playerTurn == true) ? (printf("Player one enter a move:")) : (printf("Player two enter a move:"));
+
+    // Get any character until ENTER key is pressed. 
     while(key_pressed != ENTER) 
     {
         key_pressed = getchar();
 
-        // If not ENTER. 
         if(key_pressed != ENTER) 
         {
             userInput[sizeOfArray++] = (char)key_pressed;                      
@@ -148,7 +136,7 @@ struct logic getUserInput(char chessBoard[SIZE][SIZE], struct logic L)
             userInput[sizeOfArray] = '\0'; 
     }
 
-    // Input should be of correct length. 
+    // Make sure the input is of correct length.  
     if(strlen(userInput) > 4 || strlen(userInput) < 4)
     {
         printf("\nWrong input format, it should be:\nLETTER|SINGLE DIGIT|LETTER|SINGLE DIGIT\nPress any key to continue...");
@@ -195,6 +183,7 @@ struct logic executeMove(char chessBoard[SIZE][SIZE], struct logic L)
 {
     char temp = ' ';
 
+    // This will execute a players move and make sure their king as a result doesn't end up in check. 
     if(L.blocked == false || chessBoard[L.y_sel][L.x_sel] == 'K' || chessBoard[L.y_sel][L.x_sel] == 'k') 
     {   
         if(gameRules(chessBoard, L) == true) 
@@ -203,7 +192,6 @@ struct logic executeMove(char chessBoard[SIZE][SIZE], struct logic L)
             chessBoard[L.y_mov][L.x_mov] = chessBoard[L.y_sel][L.x_sel];
             chessBoard[L.y_sel][L.x_sel] = ' ';
 
-            // Set movement "target" to kings position.
             if(L.playerTurn == true)
             {
                 L.playerTurn = false; 
@@ -244,41 +232,31 @@ struct logic executeMove(char chessBoard[SIZE][SIZE], struct logic L)
 
 int translateLetter(char letter) 
 {
-    // If char letter correspond to any of the following:
-    if(letter == 'a' || letter == 'A')
-        return 0;
-    else if(letter == 'b' || letter == 'B')
-        return 1;
-    else if(letter == 'c' || letter == 'C')
-        return 2;
-    else if(letter == 'd' || letter == 'D')
-        return 3;
-    else if(letter == 'e' || letter == 'E')
-        return 4;
-    else if(letter == 'f' || letter == 'F')
-        return 5;
-    else if(letter == 'g' || letter == 'G')
-        return 6;
-    else if(letter == 'h' || letter == 'H')
-        return 7;
-
-    return -1;
+    // Look if a letter correspond to any of the following:
+    if     (letter == 'a' || letter == 'A') return  0;
+    else if(letter == 'b' || letter == 'B') return  1;
+    else if(letter == 'c' || letter == 'C') return  2;
+    else if(letter == 'd' || letter == 'D') return  3;
+    else if(letter == 'e' || letter == 'E') return  4;
+    else if(letter == 'f' || letter == 'F') return  5;
+    else if(letter == 'g' || letter == 'G') return  6;
+    else if(letter == 'h' || letter == 'H') return  7;
+    else                                    return -1;
 }
 
 int* scanBoard(char chessBoard[SIZE][SIZE], struct logic L,
                bool* blocked,               bool allocateMem, int *sizeOfArray) 
 {   
-    int bytes_to_be_allocated = 2; 
+    int bytes_to_be_allocated = 2, index = 0;
     int x = L.x_sel, y = L.y_sel; 
     int* path;
-    int index = 0; 
 
     *blocked = false;   
 
     path = malloc(bytes_to_be_allocated * sizeof(int));  
     if(path == NULL) failed_allocation(); 
 
-    // If selected piece is a knight, it's a  special case. 
+    // If the selected piece is a knight, it's a  special case. 
     if(chessBoard[L.y_sel][L.x_sel] == 'K' || chessBoard[L.y_sel ][L.x_sel] == 'k')
     {
         if(allocateMem == true)
@@ -287,37 +265,35 @@ int* scanBoard(char chessBoard[SIZE][SIZE], struct logic L,
             return NULL; 
     }        
 
-    // Loop untill selection is equal to target. 
+    // Loop and scan the board untill selection is equal to target. 
     while(x != L.x_mov || y != L.y_mov)
     {   
-        // Add coordinates of each step and increase allocated data size. 
         path[index++] = y;    
         path[index++] = x;
 
-        // Increase amount of alocated bytes. 
         bytes_to_be_allocated += 2;   
         path = realloc(path, bytes_to_be_allocated * sizeof(int)); 
         if(path == NULL) failed_allocation();
 
-        // Iterate x. 
         if(L.x_mov > x) 
             x++;
         else if(L.x_mov < x)
             x--;
         
-        // Iterate y.
         if(L.y_mov > y) 
             y++;
         else if(L.y_mov < y)
             y--;
     } 
 
+    // Is the scanned path blocked?
     for(int i = 0; i < index; i+=2)
     {
         if(chessBoard[path[i]][path[i + 1]] != ' ' && i != 0 & i != index)
             *blocked = true;
     } 
 
+    // Action taken depending on request for allocated memory. 
     if(allocateMem == true && sizeOfArray != NULL)
     {
         *sizeOfArray = index;
@@ -332,10 +308,10 @@ int* scanBoard(char chessBoard[SIZE][SIZE], struct logic L,
 
 void drawConsole(char chessBoard[SIZE][SIZE]) 
 {
+    int board_numbers = 1; 
+    
     system(SYSTEM);
 
-    // Print the chess board and all other display to console. 
-    int board_numbers = 1; 
     for(int i = 0; i < SIZE; ++i) {      
         printf("%d.", board_numbers++);
         for(int j = 0; j < SIZE; ++j) 
@@ -352,18 +328,22 @@ void drawConsole(char chessBoard[SIZE][SIZE])
 bool gameRules(char chessBoard[SIZE][SIZE], struct logic L) 
 {
     // Action depending on piece being moved. 
-    if(chessBoard[L.y_sel][L.x_sel] == 'P' || chessBoard[L.y_sel][L.x_sel] == 'p') 
-        return pawn(chessBoard, L);
-    else if(chessBoard[L.y_sel][L.x_sel] == 'R' || chessBoard[L.y_sel][L.x_sel] == 'r') 
-        return rook(chessBoard, L);
-    else if(chessBoard[L.y_sel][L.x_sel] == 'K' || chessBoard[L.y_sel][L.x_sel] == 'k') 
-        return knight(chessBoard, L);
-    else if(chessBoard[L.y_sel][L.x_sel] == 'B' || chessBoard[L.y_sel][L.x_sel] == 'b') 
-        return bishop(chessBoard, L);
-    else if(chessBoard[L.y_sel][L.x_sel] == 'Q' || chessBoard[L.y_sel][L.x_sel] == 'q') 
-        return queen(chessBoard, L);
-    else if(chessBoard[L.y_sel][L.x_sel] == 'W' || chessBoard[L.y_sel][L.x_sel] == 'w') 
-        return king(chessBoard, L);
+    if((L.playerTurn == true && isUpperOrLower(chessBoard[L.y_sel][L.x_sel])  == true) || 
+       (L.playerTurn == false && isUpperOrLower(chessBoard[L.y_sel][L.x_sel]) == false))
+    {
+        if(chessBoard[L.y_sel][L.x_sel] == 'P' || chessBoard[L.y_sel][L.x_sel] == 'p') 
+            return pawn(chessBoard, L);
+        else if(chessBoard[L.y_sel][L.x_sel] == 'R' || chessBoard[L.y_sel][L.x_sel] == 'r') 
+            return rook(chessBoard, L);
+        else if(chessBoard[L.y_sel][L.x_sel] == 'K' || chessBoard[L.y_sel][L.x_sel] == 'k') 
+            return knight(chessBoard, L);
+        else if(chessBoard[L.y_sel][L.x_sel] == 'B' || chessBoard[L.y_sel][L.x_sel] == 'b') 
+            return bishop(chessBoard, L);
+        else if(chessBoard[L.y_sel][L.x_sel] == 'Q' || chessBoard[L.y_sel][L.x_sel] == 'q') 
+            return queen(chessBoard, L);
+        else if(chessBoard[L.y_sel][L.x_sel] == 'W' || chessBoard[L.y_sel][L.x_sel] == 'w') 
+            return king(chessBoard, L);
+    }
 
     return false;
 }
@@ -448,7 +428,6 @@ bool knight(char chessBoard[SIZE][SIZE], struct logic L)
 
     next:
 
-    // Makes sure status of movment target is correct. 
     return targetStatus(chessBoard, L);
 }
 
@@ -470,7 +449,6 @@ bool bishop(char chessBoard[SIZE][SIZE], struct logic L)
     if(differenceX != differenceY) 
         return false;
     
-    // Makes sure status of movment target is correct. 
     return targetStatus(chessBoard, L);
 }
 
@@ -506,7 +484,6 @@ bool queen(char chessBoard[SIZE][SIZE], struct logic L)
 
     next:
 
-    // Makes sure status of movment target is correct. 
     return targetStatus(chessBoard, L); 
 }
 
@@ -533,10 +510,8 @@ bool king(char chessBoard[SIZE][SIZE], struct logic L)
 
     next:
 
-    // Makes sure status of movment target is correct. 
     if(targetStatus(chessBoard, L) == true) 
     {
-        // Keep track of the kings new position. 
         if(L.playerTurn == true)
         {
             kingP1.kingY = L.y_mov;
@@ -630,14 +605,18 @@ bool targetStatus(char chessBoard[SIZE][SIZE], struct logic L)
 
 bool isUpperOrLower(char letter) 
 {
-    // Check if upper or lower case, by ASCII value between the different letters. 
+    // Try if letter upper(true) or lower(false) case.
+    bool result = false;
+
     if(letter >= 'A' && letter <= 'Z') 
-        return true;   
+        result = true;   
     else if(letter >= 'a' && letter <= 'z')
-        return false; 
+        result = false; 
 
     if(letter == ' ')
-        return false;  
+        result = false;  
+
+    return result;
 }
 
 bool checkmate(char chessBoard[SIZE][SIZE], struct logic L)
@@ -649,7 +628,7 @@ bool checkmate(char chessBoard[SIZE][SIZE], struct logic L)
 
     L.x_sel = L.x_mov, L.y_sel = L.y_mov;
 
-    // Tracks if kings is in check or not. 
+    // Scan if kings is in check or not. 
     if(L.playerTurn == true)
     { 
         L.playerTurn = false;
@@ -674,7 +653,6 @@ bool checkmate(char chessBoard[SIZE][SIZE], struct logic L)
     // Scan the kings surroundings for a possiblity to move out of danger. 
     for(int i = 0; i < SIZE; ++i) 
     {
-        // Represents all surrounding squares around the kings position. 
         switch (i)
         {
             case 0:
@@ -723,10 +701,8 @@ bool checkmate(char chessBoard[SIZE][SIZE], struct logic L)
         }
     }
 
-    // Reset y and x.
     x = x + 1, y = y + 1;
-
-    // Set coordinates of attacker and the targeted king.
+    
     L.x_sel = attackerX, L.y_sel = attackerY; 
     L.x_mov = x, L.y_mov = y; 
 
@@ -735,9 +711,8 @@ bool checkmate(char chessBoard[SIZE][SIZE], struct logic L)
     // Get attackers path to the target.
     int* path = scanBoard(chessBoard, L, &L.blocked, true, &sizeOfArray);
     
-    // Finally, see if the threat be removed or blocked.
+    // Finally, see if the threat can be removed or blocked.
     chessBoard[L.y_mov][L.x_mov] = ' ';
-    
     for(int i = 0; i < sizeOfArray; i+=2)
     {
         if(lookForMoveAtTarget(chessBoard, L, path[i + 1], path[i], &attackerX, &attackerY) == true)
@@ -750,7 +725,6 @@ bool checkmate(char chessBoard[SIZE][SIZE], struct logic L)
         }
     }
     (L.playerTurn == true) ? (chessBoard[L.y_mov][L.x_mov] = 'W') : (chessBoard[L.y_mov][L.x_mov] = 'w'); 
-    
     
     free(path);
     drawConsole(chessBoard);
