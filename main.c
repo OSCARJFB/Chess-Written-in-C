@@ -117,7 +117,9 @@ void runGame(char chessBoard[SIZE][SIZE], struct logic L)
         scanBoard(chessBoard, L, &L.blocked, false, NULL);
         L = executeMove(chessBoard, L);
         if(checkmate(chessBoard, L) == true)
+        {
             break;
+        }
     }
 
     printf("\n###### Checkmate ######\n");
@@ -127,7 +129,10 @@ void runGame(char chessBoard[SIZE][SIZE], struct logic L)
 struct logic getUserInput(char chessBoard[SIZE][SIZE], struct logic L) 
 {
     char* userInput = malloc(sizeof(char)); 
-    if(userInput == NULL) failed_allocation();
+    if(userInput == NULL)
+    {
+        failed_allocation();
+    } 
 
     int key_pressed = 0, sizeOfArray = 0; 
     
@@ -142,10 +147,15 @@ struct logic getUserInput(char chessBoard[SIZE][SIZE], struct logic L)
         {
             userInput[sizeOfArray++] = (char)key_pressed;                      
             userInput = realloc(userInput, (sizeOfArray + 1) * sizeof(char));   
-            if(userInput == NULL) failed_allocation();
+            if(userInput == NULL)
+            {
+                failed_allocation();
+            } 
         }
         else 
+        {
             userInput[sizeOfArray] = '\0'; 
+        }
     }
 
     // Make sure the input is of correct length.  
@@ -166,20 +176,28 @@ struct logic getUserInput(char chessBoard[SIZE][SIZE], struct logic L)
             case 0: 
                 if(((int)userInput[sizeOfArray] >= 97 && (int)userInput[sizeOfArray] <= 104) || 
                    ((int)userInput[sizeOfArray] >= 65 && (int)userInput[sizeOfArray] <= 72)) 
+                {
                     L.x_sel = translateLetter(userInput[sizeOfArray]);
+                }
                 break;
             case 1:
                 if(userInput[sizeOfArray] - '0' >= 1 && userInput[sizeOfArray] - '0' <= 9) 
+                {
                     L.y_sel = userInput[sizeOfArray] - '0'  - 1;
+                }
                 break;
             case 2: 
                 if(((int)userInput[sizeOfArray] >= 97 && (int)userInput[sizeOfArray] <= 104) || 
                    ((int)userInput[sizeOfArray] >= 65 && (int)userInput[sizeOfArray] <= 72)) 
+                {
                     L.x_mov = translateLetter(userInput[sizeOfArray]);
+                }
                 break;
             case 3:  
                 if(userInput[sizeOfArray] - '0' >= 1 && userInput[sizeOfArray] - '0' <= 9) 
+                {
                     L.y_mov = userInput[sizeOfArray] - '0' - 1;
+                }
                 break;
         }
         sizeOfArray++;
@@ -257,15 +275,42 @@ struct logic executeMove(char chessBoard[SIZE][SIZE], struct logic L)
 int translateLetter(char letter) 
 {
     // Look if a letter correspond to any of the following:
-    if     (letter == 'a' || letter == 'A') return  0;
-    else if(letter == 'b' || letter == 'B') return  1;
-    else if(letter == 'c' || letter == 'C') return  2;
-    else if(letter == 'd' || letter == 'D') return  3;
-    else if(letter == 'e' || letter == 'E') return  4;
-    else if(letter == 'f' || letter == 'F') return  5;
-    else if(letter == 'g' || letter == 'G') return  6;
-    else if(letter == 'h' || letter == 'H') return  7;
-    else                                    return -1;
+    if     (letter == 'a' || letter == 'A') 
+    {
+        return  0;
+    }
+    else if(letter == 'b' || letter == 'B') 
+    {
+        return  1;
+    }
+    else if(letter == 'c' || letter == 'C')
+    {
+        return  2;
+    } 
+    else if(letter == 'd' || letter == 'D')
+    { 
+        return  3;
+    }
+    else if(letter == 'e' || letter == 'E') 
+    {
+        return  4;
+    }
+    else if(letter == 'f' || letter == 'F')
+    {
+         return  5;
+    }
+    else if(letter == 'g' || letter == 'G')
+    {
+         return  6;
+    }
+    else if(letter == 'h' || letter == 'H')
+    {
+         return  7;
+    }
+    else    
+    {                                
+        return -1;
+    }
 }
 
 int* scanBoard(char chessBoard[SIZE][SIZE], struct logic L,
@@ -278,15 +323,15 @@ int* scanBoard(char chessBoard[SIZE][SIZE], struct logic L,
     *blocked = false;   
 
     path = malloc(bytes_to_be_allocated * sizeof(int));  
-    if(path == NULL) failed_allocation(); 
+    if(path == NULL)
+    {
+         failed_allocation(); 
+    }
 
     // If the selected piece is a knight, it's a  special case. 
     if(chessBoard[L.y_sel][L.x_sel] == 'K' || chessBoard[L.y_sel ][L.x_sel] == 'k')
     {
-        if(allocateMem == true)
-            return path;
-        else
-            return NULL; 
+        (allocateMem == true) ? return path : return NULL; 
     }        
 
     // Loop and scan the board untill selection is equal to target. 
@@ -297,17 +342,28 @@ int* scanBoard(char chessBoard[SIZE][SIZE], struct logic L,
 
         bytes_to_be_allocated += 2;   
         path = realloc(path, bytes_to_be_allocated * sizeof(int)); 
-        if(path == NULL) failed_allocation();
+        if(path == NULL)
+        {
+             failed_allocation();
+        }
 
         if(L.x_mov > x) 
+        {
             x++;
+        }
         else if(L.x_mov < x)
+        {
             x--;
+        }
         
         if(L.y_mov > y) 
+        {
             y++;
+        }
         else if(L.y_mov < y)
+        {
             y--;
+        }
     } 
 
     // Is the scanned path blocked?
@@ -336,7 +392,8 @@ void drawConsole(char chessBoard[SIZE][SIZE])
     
     system(SYSTEM);
 
-    for(int i = 0; i < SIZE; ++i) {      
+    for(int i = 0; i < SIZE; ++i) 
+    {      
         printf("%d.", board_numbers++);
         for(int j = 0; j < SIZE; ++j) 
         {   
@@ -356,17 +413,29 @@ bool gameRules(char chessBoard[SIZE][SIZE], struct logic L)
        (L.playerTurn == false && isUpperOrLower(chessBoard[L.y_sel][L.x_sel]) == false))
     {
         if(chessBoard[L.y_sel][L.x_sel] == 'P' || chessBoard[L.y_sel][L.x_sel] == 'p') 
+        {
             return pawn(chessBoard, L);
+        }
         else if(chessBoard[L.y_sel][L.x_sel] == 'R' || chessBoard[L.y_sel][L.x_sel] == 'r') 
+        {
             return rook(chessBoard, L);
+        }
         else if(chessBoard[L.y_sel][L.x_sel] == 'K' || chessBoard[L.y_sel][L.x_sel] == 'k') 
+        {
             return knight(chessBoard, L);
+        }
         else if(chessBoard[L.y_sel][L.x_sel] == 'B' || chessBoard[L.y_sel][L.x_sel] == 'b') 
+        {
             return bishop(chessBoard, L);
+        }
         else if(chessBoard[L.y_sel][L.x_sel] == 'Q' || chessBoard[L.y_sel][L.x_sel] == 'q') 
+        {
             return queen(chessBoard, L);
+        }
         else if(chessBoard[L.y_sel][L.x_sel] == 'W' || chessBoard[L.y_sel][L.x_sel] == 'w') 
+        {
             return king(chessBoard, L);
+        }
     }
 
     return false;
@@ -378,19 +447,25 @@ bool pawn(char chessBoard[SIZE][SIZE], struct logic L)
         if(L.y_sel == 1 && L.y_mov == L.y_sel + 2 && L.x_sel == L.x_mov) // Start move. 
         {
             if(chessBoard[L.y_mov][L.x_mov] == ' ')
+            {
                 return true; 
+            }
         }
         else if(L.y_mov == L.y_sel + 1 && L.x_sel == L.x_mov) // Regular move. 
         {
             if(chessBoard[L.y_mov][L.x_mov] == ' ')
-                return true;
+            {
+                return true; 
+            }
         } 
         else if(L.y_mov == L.y_sel + 1 && 
                (L.x_mov == L.x_sel + 1 || L.x_mov == L.x_sel - 1) && 
                chessBoard[L.y_mov][L.x_mov] != ' ') // Attack move. 
         {
             if(isUpperOrLower(chessBoard[L.y_mov][L.x_mov]) == false) // Is lower. 
-                return true;
+            {
+                return true; 
+            }
         }    
     }
     else if(L.playerTurn == false) {
@@ -398,19 +473,25 @@ bool pawn(char chessBoard[SIZE][SIZE], struct logic L)
         if(L.y_sel == 6 && L.y_mov == L.y_sel - 2 && L.x_sel == L.x_mov) // Start move.
         {
             if(chessBoard[L.y_mov][L.x_mov] == ' ')
+            {
                 return true; 
+            }
         }
         else if(L.y_mov == L.y_sel - 1 && L.x_sel == L.x_mov) // Regular move. 
         {
             if(chessBoard[L.y_mov][L.x_mov] == ' ')
-                return true;
+            {
+                return true; 
+            }
         } 
         else if(L.y_mov == L.y_sel - 1 && L.x_sel != L.x_mov && 
                (L.x_mov == L.x_sel + 1 || L.x_mov == L.x_sel - 1) &&
                 chessBoard[L.y_mov][L.x_mov] != ' ') // Attack move. 
         {
             if(isUpperOrLower(chessBoard[L.y_mov][L.x_mov]) == true) // Is upper. 
-                return true;
+            {
+                return true; 
+            }
         }    
     }
 
@@ -421,15 +502,25 @@ bool rook(char chessBoard[SIZE][SIZE], struct logic L)
 {
     // Vertical and horizontal movement.  
     if(L.x_sel > L.x_mov && L.y_sel == L.y_mov)
+    {
         goto next;
+    }
     else if(L.x_sel < L.x_mov && L.y_sel == L.y_mov)
+    {
         goto next;
+    }
     else if(L.y_sel > L.y_mov && L.x_sel == L.x_mov)
+    {
         goto next;
+    }
     else if(L.y_sel < L.y_mov && L.x_sel == L.x_mov)
+    {
         goto next;
+    }
     else
+    {
         return false;
+    }
 
     next: 
 
@@ -444,15 +535,25 @@ bool knight(char chessBoard[SIZE][SIZE], struct logic L)
 {
     // Check move pattern, if it's correct, continue, else return false.  
     if(L.y_mov == L.y_sel + 2 && (L.x_mov == L.x_sel + 1 || L.x_mov == L.x_sel - 1)) 
+    {
         goto next;
+    }
     else if(L.y_mov == L.y_sel - 2 && (L.x_mov == L.x_sel + 1 || L.x_mov == L.x_sel - 1))
+    {
         goto next;
+    }
     else if(L.x_mov == L.x_sel + 2 && (L.y_mov == L.y_sel + 1 || L.y_mov == L.y_sel - 1))
+    {
         goto next;
+    }
     else if(L.x_mov == L.x_sel - 2 && (L.y_mov == L.y_sel + 1 || L.y_mov == L.y_sel - 1))
+    {
         goto next;
-    else 
+    }
+    else
+    { 
         return false; 
+    }
 
     next:
 
@@ -465,18 +566,28 @@ bool bishop(char chessBoard[SIZE][SIZE], struct logic L)
 
     // Diagonal movement. 
     if(L.x_sel < L.x_mov)
+    {
         differenceX = L.x_mov - L.x_sel;
+    }
     else 
+    {
         differenceX = L.x_sel - L.x_mov;
+    }
 
     if(L.y_sel < L.y_mov)
+    {
         differenceY = L.y_mov - L.y_sel;
+    }
     else 
+    {
         differenceY = L.y_sel - L.y_mov;
+    }
 
-    if(differenceX != differenceY) 
+    if(differenceX != differenceY)
+    { 
         return false;
-    
+    }
+
     return targetStatus(chessBoard, L);
 }
 
@@ -486,29 +597,49 @@ bool queen(char chessBoard[SIZE][SIZE], struct logic L)
 
     // Diagonal movment. 
     if(L.x_sel < L.x_mov)
+    {
         differenceX = L.x_mov - L.x_sel;
-    else 
+    }
+    else
+    { 
         differenceX = L.x_sel - L.x_mov;
+    }
 
     if(L.y_sel < L.y_mov)
+    {
         differenceY = L.y_mov - L.y_sel;
-    else 
+    }
+    else
+    { 
         differenceY = L.y_sel - L.y_mov;
+    }
 
     if(differenceX == differenceY)
+    {
         return targetStatus(chessBoard, L);     
+    }
 
     // Vertical and horizontal movement. 
     if(L.x_sel > L.x_mov && L.y_sel == L.y_mov)
+    {
         goto next;
+    }
     else if(L.x_sel < L.x_mov && L.y_sel == L.y_mov)
+    {
         goto next;
+    }
     else if(L.y_sel > L.y_mov && L.x_sel == L.x_mov)
+    {
         goto next;
+    }
     else if(L.y_sel < L.y_mov && L.x_sel == L.x_mov)
+    {
         goto next;
+    }
     else
+    {
         return false;
+    }
 
     next:
 
@@ -521,23 +652,41 @@ bool king(char chessBoard[SIZE][SIZE], struct logic L)
         return true;
 
     if(L.y_mov == L.y_sel - 1 && L.x_mov == L.x_sel)
+    {
         goto next;
+    }
     else if(L.y_mov == L.y_sel - 1 && L.x_mov == L.x_sel + 1)
+    {
         goto next;
+    }
     else if(L.y_mov == L.y_sel && L.x_mov == L.x_sel + 1)
+    {
         goto next;
+    }
     else if(L.y_mov == L.y_sel + 1 && L.x_mov == L.x_sel + 1)
+    {
         goto next;
+    }
     else if(L.y_mov == L.y_sel + 1 && L.x_mov == L.x_sel)
+    {
         goto next;
+    }
     else if(L.y_mov == L.y_sel + 1 && L.x_mov == L.x_sel - 1)
+    {
         goto next;
+    }
     else if(L.y_mov == L.y_sel && L.x_mov == L.x_sel - 1)
+    {
         goto next;
+    }
     else if(L.y_mov == L.y_sel - 1 && L.x_mov == L.x_sel - 1)
+    {
         goto next;
+    }
     else 
-        return false; 
+    {
+        return false;
+    }
 
     next:
 
@@ -616,7 +765,9 @@ bool lookForMoveAtTarget(char chessBoard[SIZE][SIZE], struct logic L,
                             return true;
                         }
                         else 
+                        {
                             return true;
+                        }
                     }
                 }
             } 
@@ -634,7 +785,9 @@ bool lookForMoveAtTarget(char chessBoard[SIZE][SIZE], struct logic L,
                             return true;
                         }
                         else 
+                        {
                             return true;
+                        }
                     }
                 }
             }
@@ -650,13 +803,17 @@ bool targetStatus(char chessBoard[SIZE][SIZE], struct logic L)
     if(L.playerTurn == true) 
     {
         if(chessBoard[L.y_mov][L.x_mov] == ' ' || isUpperOrLower(chessBoard[L.y_mov][L.x_mov]) == false)
+        {
             return true;
+        }
 
     }
     else if(L.playerTurn == false)
     {
         if(chessBoard[L.y_mov][L.x_mov] == ' ' || isUpperOrLower(chessBoard[L.y_mov][L.x_mov]) == true)
+        {
             return true;
+        }
     }
     
     return false;
@@ -668,12 +825,19 @@ bool isUpperOrLower(char letter)
     bool result = false;
 
     if(letter >= 'A' && letter <= 'Z') 
+    {
         result = true;   
-    else if(letter >= 'a' && letter <= 'z')
+    }
+    
+    if(letter >= 'a' && letter <= 'z')
+    {
         result = false; 
+    }
 
-    if(letter == ' ')
-        result = false;  
+    //if(letter == ' ')
+    //{
+    //    result = false;  
+    //}
 
     return result;
 }
@@ -694,7 +858,9 @@ bool checkmate(char chessBoard[SIZE][SIZE], struct logic L)
         if(lookForMoveAtTarget(chessBoard,   L, 
                                kingP1.kingX, kingP1.kingY,
                                &attackerX,   &attackerY) == false) 
+        {
             return false;
+        }
 
         y = kingP1.kingY, x = kingP1.kingX;
     }
@@ -704,7 +870,9 @@ bool checkmate(char chessBoard[SIZE][SIZE], struct logic L)
         if(lookForMoveAtTarget(chessBoard,   L, 
                                kingP2.kingX, kingP2.kingY,
                                &attackerX,   &attackerY) == false)
+        {
             return false;
+        }
 
         y = kingP2.kingY, x = kingP2.kingX;
     }
