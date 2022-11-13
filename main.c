@@ -3,6 +3,7 @@
  *	Last edited: 2022-11-05
  *  This is a chess game, able to run as a console application on Linux, Windows and MacOS.
  */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -328,10 +329,17 @@ int* scanBoard(char chessBoard[SIZE][SIZE], struct logic L,
          failed_allocation(); 
     }
 
-    // If the selected piece is a knight, it's a  special case. 
+    // If the selected piece is a knight, it's a special case. 
     if(chessBoard[L.y_sel][L.x_sel] == 'K' || chessBoard[L.y_sel ][L.x_sel] == 'k')
     {
-        (allocateMem == true) ? return path : return NULL; 
+        if(allocateMem == true)
+        {
+            return path;
+        }
+        else
+        {
+            return NULL; 
+        } 
     }        
 
     // Loop and scan the board untill selection is equal to target. 
@@ -344,7 +352,7 @@ int* scanBoard(char chessBoard[SIZE][SIZE], struct logic L,
         path = realloc(path, bytes_to_be_allocated * sizeof(int)); 
         if(path == NULL)
         {
-             failed_allocation();
+            failed_allocation();
         }
 
         if(L.x_mov > x) 
@@ -833,11 +841,6 @@ bool isUpperOrLower(char letter)
     {
         result = false; 
     }
-
-    //if(letter == ' ')
-    //{
-    //    result = false;  
-    //}
 
     return result;
 }
