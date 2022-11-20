@@ -1,6 +1,6 @@
 /*
  *	Author: Oscar Bergstrom.
- *	Last edited: 2022-11-05
+ *	Last edited: 2022-11-20
  *  This is a chess game, able to run as a console application on Linux, Windows and MacOS.
  */
 
