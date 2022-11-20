@@ -11,7 +11,6 @@
 
 #define SIZE 8
 #define ENTER 10
-#define INPUT_SIZE = 4
 
 #ifdef linux
     #define SYSTEM "clear"
@@ -326,7 +325,7 @@ int* scanBoard(char chessBoard[SIZE][SIZE], struct logic L,
     path = malloc(bytes_to_be_allocated * sizeof(int));  
     if(path == NULL)
     {
-         failed_allocation(); 
+        failed_allocation(); 
     }
 
     // If the selected piece is a knight, it's a special case. 
