@@ -10,6 +10,7 @@
 #include "chess_prototypes.h"
 #include "chess_macros.h"
 #include "chess_structs.h"
+#include "loglib.h"
 
 void failed_allocation(void)
 {
@@ -19,6 +20,8 @@ void failed_allocation(void)
 
 int main(void)
 {
+    logEvent("Game started!");
+
     struct logic L;
     char chessBoard[SIZE][SIZE] =
         {
@@ -33,6 +36,8 @@ int main(void)
 
     L = initGame(L);
     runGame(chessBoard, L);
+
+    logEvent("Exit Game!");
 
     return 0;
 }

@@ -22,7 +22,7 @@ bool isUpperOrLower(char);
 
 bool checkmate(char[SIZE][SIZE], logic);
 bool lookForMoveAtTarget(char[SIZE][SIZE], logic,
-                        int, int, int *, int *);
+                         int, int, int *, int *);
 
 bool gameRules(char[SIZE][SIZE], logic);
 bool pawn(char[SIZE][SIZE], logic);
