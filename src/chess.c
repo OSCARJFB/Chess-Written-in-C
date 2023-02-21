@@ -20,8 +20,6 @@ void failed_allocation(void)
 
 int main(void)
 {
-    logEvent("Game started!");
-
     struct logic L;
     char chessBoard[SIZE][SIZE] =
         {
@@ -37,12 +35,10 @@ int main(void)
     L = initGame(L);
     runGame(chessBoard, L);
 
-    logEvent("Exit Game!");
-
     return 0;
 }
 
-struct logic initGame(logic L)
+logic initGame(logic L)
 {
     L.x_sel = L.y_sel = -1;
     L.x_mov = L.y_mov = -1;
@@ -62,19 +58,14 @@ void runGame(char chessBoard[SIZE][SIZE], logic L)
     {
         drawConsole(chessBoard);
         L = getUserInput(chessBoard, L);
-        scanBoard(chessBoard, L, &L.blocked, false, NULL);
+        L = isPathBlocked(chessBoard, L);
         L = executeMove(chessBoard, L);
-        if (checkmate(chessBoard, L) == true)
-        {
-            break;
-        }
     }
 
     printf("\n###### Checkmate ######\n");
-    return;
 }
 
-struct logic getUserInput(char chessBoard[SIZE][SIZE], logic L)
+logic getUserInput(char chessBoard[SIZE][SIZE], logic L)
 {
     char *userInput = malloc(sizeof(char));
     if (userInput == NULL)
@@ -86,7 +77,6 @@ struct logic getUserInput(char chessBoard[SIZE][SIZE], logic L)
 
     L.playerTurn == true ? printf("Player one enter a move:") : printf("Player two enter a move:");
 
-    // Get any character until ENTER key is pressed.
     while (key_pressed != ENTER)
     {
         key_pressed = getchar();
@@ -152,68 +142,25 @@ struct logic getUserInput(char chessBoard[SIZE][SIZE], logic L)
     }
 
     free(userInput);
-
     return L;
 }
 
-struct logic executeMove(char chessBoard[SIZE][SIZE], logic L)
+logic executeMove(char chessBoard[SIZE][SIZE], logic L)
 {
-    char piece_in_hand = ' ';
     int kingX = L.playerTurn == true ? kingP1.kingX : kingP2.kingX;
     int kingY = L.playerTurn == true ? kingP1.kingY : kingP2.kingY;
 
-    // A move can't be blocked unless the selected piece is of type kight.
     if (L.blocked == false || chessBoard[L.y_sel][L.x_sel] == 'k' || chessBoard[L.y_sel][L.x_sel] == 'K')
     {
-        // Rules constrainsts can't be broken.
-        if (gameRules(chessBoard, L) == true)
+        if (gameRules(chessBoard, L))
         {
-            // Since the gamerules were not broken, either do a castling or execute a regular move.
             if (L_cast.shortCast == true || L_cast.longCast == true)
             {
-                // Move rook.
-                piece_in_hand = L.playerTurn == true ? 'R' : 'r';
-                (L_cast.shortCast == true) ? (chessBoard[L_cast.row][7] = ' ') : (chessBoard[L_cast.row][0] = ' ');
-                chessBoard[L_cast.row][L_cast.col] = piece_in_hand;
-
-                // Move King.
-                piece_in_hand = L.playerTurn == true ? 'W' : 'w';
-                chessBoard[L.y_sel][L.x_sel] = ' ';
-                (L_cast.shortCast == true) ? (chessBoard[L_cast.row][L_cast.col + 1] = piece_in_hand) : (chessBoard[L_cast.row][L_cast.col - 1] = piece_in_hand);
-
-                // King can't be in check.
-                L.playerTurn = L.playerTurn == true ? false : true;
-                if (lookForMoveAtTarget(chessBoard, L,
-                                        kingX, kingY,
-                                        NULL, NULL) == false)
-                    return L;
-                {
-                    L.playerTurn = L.playerTurn == false ? true : false;
-                    piece_in_hand = L.playerTurn == true ? 'R' : 'r';
-                    (L_cast.shortCast == true) ? (chessBoard[L_cast.row][7] = piece_in_hand) : (chessBoard[L_cast.row][0] = piece_in_hand);
-
-                    piece_in_hand = L.playerTurn == true ? 'W' : 'w';
-                    chessBoard[L.y_sel][L.x_sel] = piece_in_hand;
-                }
+                L = executeCastlingMove(chessBoard, L, kingX, kingY);
             }
             else
             {
-                // Make move.
-                piece_in_hand = chessBoard[L.y_mov][L.x_mov];
-                chessBoard[L.y_mov][L.x_mov] = chessBoard[L.y_sel][L.x_sel];
-                chessBoard[L.y_sel][L.x_sel] = ' ';
-
-                // King can't be in check.
-                L.playerTurn = L.playerTurn == true ? false : true;
-                if (lookForMoveAtTarget(chessBoard, L,
-                                        kingX, kingY,
-                                        NULL, NULL) == false)
-                    return L;
-                {
-                    L.playerTurn = L.playerTurn == false ? true : false;
-                    chessBoard[L.y_sel][L.x_sel] = chessBoard[L.y_mov][L.x_mov];
-                    chessBoard[L.y_mov][L.x_mov] = piece_in_hand;
-                }
+                L = executeRegularMove(chessBoard, L, kingX, kingY);
             }
         }
     }
@@ -221,9 +168,57 @@ struct logic executeMove(char chessBoard[SIZE][SIZE], logic L)
     return L;
 }
 
+logic executeCastlingMove(char chessBoard[SIZE][SIZE], logic L, int kingX, int kingY)
+{
+    char piece_in_hand = L.playerTurn == true ? 'R' : 'r';
+
+    if (L_cast.shortCast == true)
+    {
+        chessBoard[L_cast.row][7] = ' ';
+    }
+    else
+    {
+        chessBoard[L_cast.row][0] = ' ';
+    }
+
+    chessBoard[L_cast.row][L_cast.col] = piece_in_hand;
+
+    piece_in_hand = L.playerTurn == true ? 'W' : 'w';
+    chessBoard[L.y_sel][L.x_sel] = ' ';
+
+    piece_in_hand = L_cast.shortCast == true ? chessBoard[L_cast.row][L_cast.col + 1] : chessBoard[L_cast.row][L_cast.col - 1];
+
+    L.playerTurn = L.playerTurn == true ? false : true;
+
+    if (isTargetUnderThreat(chessBoard, L, kingX, kingY))
+    {
+        L.playerTurn = L.playerTurn == true ? false : true;
+        return L;
+    }
+
+    return L;
+}
+
+logic executeRegularMove(char chessBoard[SIZE][SIZE], logic L, int kingX, int kingY)
+{
+    char piece_in_hand = chessBoard[L.y_mov][L.x_mov];
+
+    chessBoard[L.y_mov][L.x_mov] = chessBoard[L.y_sel][L.x_sel];
+    chessBoard[L.y_sel][L.x_sel] = ' ';
+
+    L.playerTurn = L.playerTurn == true ? false : true;
+
+    if (isTargetUnderThreat(chessBoard, L, kingX, kingY))
+    {
+        L.playerTurn = L.playerTurn == true ? false : true;
+        return L;
+    }
+
+    return L;
+}
+
 int translateLetter(char letter)
 {
-    // Look if a letter correspond to any of the following:
     if (letter == 'a' || letter == 'A')
     {
         return 0;
@@ -262,84 +257,54 @@ int translateLetter(char letter)
     }
 }
 
-int *scanBoard(char chessBoard[SIZE][SIZE], logic L,
-               bool *blocked, bool allocateMem, int *sizeOfArray)
+logic isPathBlocked(char chessBoard[SIZE][SIZE], logic L)
 {
-    int bytes_to_be_allocated = 2, index = 0;
+    int index = 0;
     int x = L.x_sel, y = L.y_sel;
-    int *path;
+    int pathY[8], pathX[8];
 
-    *blocked = false;
-
-    path = malloc(bytes_to_be_allocated * sizeof(int));
-    if (path == NULL)
-    {
-        failed_allocation();
-    }
-
-    // If the selected piece is a knight, it's a special case.
     if (chessBoard[L.y_sel][L.x_sel] == 'K' || chessBoard[L.y_sel][L.x_sel] == 'k')
     {
-        if (allocateMem == true)
-        {
-            return path;
-        }
-        else
-        {
-            return NULL;
-        }
+        L.blocked = false;
+        return L;
     }
 
-    // Loop and scan the board untill selection is equal to target.
     while (x != L.x_mov || y != L.y_mov)
     {
-        path[index++] = y;
-        path[index++] = x;
-
-        bytes_to_be_allocated += 2;
-        path = realloc(path, bytes_to_be_allocated * sizeof(int));
-        if (path == NULL)
-        {
-            failed_allocation();
-        }
+        pathY[index] = y;
+        pathX[index] = x;
+        ++index;
 
         if (L.x_mov > x)
         {
-            x++;
+            ++x;
         }
         else if (L.x_mov < x)
         {
-            x--;
+            --x;
         }
 
         if (L.y_mov > y)
         {
-            y++;
+            ++y;
         }
         else if (L.y_mov < y)
         {
-            y--;
+            --y;
         }
     }
 
-    // Is the scanned path blocked?
-    for (int i = 0; i < index; i += 2)
+    for (int i = 1; i + 1 < index; ++i)
     {
-        if (chessBoard[path[i]][path[i + 1]] != ' ' && i != 0 & i != index)
-            *blocked = true;
+        if (chessBoard[pathY[i]][pathX[i]] != ' ')
+        {
+            L.blocked = true;
+            return L;
+        }
     }
 
-    // Action taken depending on request for allocated memory.
-    if (allocateMem == true && sizeOfArray != NULL)
-    {
-        *sizeOfArray = index;
-        return path;
-    }
-    else
-    {
-        free(path);
-        return NULL;
-    }
+    L.blocked = false;
+    return L;
 }
 
 void drawConsole(char chessBoard[SIZE][SIZE])
@@ -362,7 +327,6 @@ void drawConsole(char chessBoard[SIZE][SIZE])
 
 bool gameRules(char chessBoard[SIZE][SIZE], logic L)
 {
-    // Action depending on piece being moved.
     if ((L.playerTurn == true && isUpperOrLower(chessBoard[L.y_sel][L.x_sel]) == true) ||
         (L.playerTurn == false && isUpperOrLower(chessBoard[L.y_sel][L.x_sel]) == false))
     {
@@ -399,25 +363,24 @@ bool pawn(char chessBoard[SIZE][SIZE], logic L)
 {
     if (L.playerTurn == true)
     {
-        if (L.y_sel == 1 && L.y_mov == L.y_sel + 2 && L.x_sel == L.x_mov) // Start move.
+        if (L.y_sel == 1 && L.y_mov == L.y_sel + 2 && L.x_sel == L.x_mov)
         {
             if (chessBoard[L.y_mov][L.x_mov] == ' ')
             {
                 return true;
             }
         }
-        else if (L.y_mov == L.y_sel + 1 && L.x_sel == L.x_mov) // Regular move.
+        else if (L.y_mov == L.y_sel + 1 && L.x_sel == L.x_mov)
         {
             if (chessBoard[L.y_mov][L.x_mov] == ' ')
             {
                 return true;
             }
         }
-        else if (L.y_mov == L.y_sel + 1 &&
-                 (L.x_mov == L.x_sel + 1 || L.x_mov == L.x_sel - 1) &&
-                 chessBoard[L.y_mov][L.x_mov] != ' ') // Attack move.
+        else if (L.y_mov == L.y_sel + 1 && (L.x_mov == L.x_sel + 1 || L.x_mov == L.x_sel - 1) &&
+                 chessBoard[L.y_mov][L.x_mov] != ' ')
         {
-            if (isUpperOrLower(chessBoard[L.y_mov][L.x_mov]) == false) // Is lower.
+            if (isUpperOrLower(chessBoard[L.y_mov][L.x_mov]) == false)
             {
                 return true;
             }
@@ -426,25 +389,24 @@ bool pawn(char chessBoard[SIZE][SIZE], logic L)
     else if (L.playerTurn == false)
     {
 
-        if (L.y_sel == 6 && L.y_mov == L.y_sel - 2 && L.x_sel == L.x_mov) // Start move.
+        if (L.y_sel == 6 && L.y_mov == L.y_sel - 2 && L.x_sel == L.x_mov)
         {
             if (chessBoard[L.y_mov][L.x_mov] == ' ')
             {
                 return true;
             }
         }
-        else if (L.y_mov == L.y_sel - 1 && L.x_sel == L.x_mov) // Regular move.
+        else if (L.y_mov == L.y_sel - 1 && L.x_sel == L.x_mov)
         {
             if (chessBoard[L.y_mov][L.x_mov] == ' ')
             {
                 return true;
             }
         }
-        else if (L.y_mov == L.y_sel - 1 && L.x_sel != L.x_mov &&
-                 (L.x_mov == L.x_sel + 1 || L.x_mov == L.x_sel - 1) &&
-                 chessBoard[L.y_mov][L.x_mov] != ' ') // Attack move.
+        else if (L.y_mov == L.y_sel - 1 && L.x_sel != L.x_mov && (L.x_mov == L.x_sel + 1 || L.x_mov == L.x_sel - 1) &&
+                 chessBoard[L.y_mov][L.x_mov] != ' ')
         {
-            if (isUpperOrLower(chessBoard[L.y_mov][L.x_mov]) == true) // Is upper.
+            if (isUpperOrLower(chessBoard[L.y_mov][L.x_mov]) == true)
             {
                 return true;
             }
@@ -456,7 +418,6 @@ bool pawn(char chessBoard[SIZE][SIZE], logic L)
 
 bool rook(char chessBoard[SIZE][SIZE], logic L)
 {
-    // Vertical and horizontal movement.
     if (L.x_sel > L.x_mov && L.y_sel == L.y_mov)
     {
         goto next;
@@ -551,7 +512,6 @@ bool queen(char chessBoard[SIZE][SIZE], logic L)
 {
     int differenceX = 0, differenceY = 0;
 
-    // Diagonal movment.
     if (L.x_sel < L.x_mov)
     {
         differenceX = L.x_mov - L.x_sel;
@@ -575,7 +535,6 @@ bool queen(char chessBoard[SIZE][SIZE], logic L)
         return targetStatus(chessBoard, L);
     }
 
-    // Vertical and horizontal movement.
     if (L.x_sel > L.x_mov && L.y_sel == L.y_mov)
     {
         goto next;
@@ -670,11 +629,9 @@ bool castling(char chessBoard[SIZE][SIZE], logic L)
     const int shortC = 7, longC = 0;
     L_cast.row = L.playerTurn == true ? 0 : 7;
 
-    // Determines if a short or long cast is possible.
     if ((L.playerTurn == true && L_cast.movedP1 == false) ||
         (L.playerTurn == false && L_cast.movedP2 == false))
     {
-        // If castling was possible make sure the user move was correct.
         if (L.x_mov == shortC && L.y_mov == L_cast.row)
         {
             L_cast.col = 5;
@@ -692,57 +649,26 @@ bool castling(char chessBoard[SIZE][SIZE], logic L)
     return false;
 }
 
-bool lookForMoveAtTarget(char chessBoard[SIZE][SIZE], logic L,
-                         int targetX, int targetY, int *attackerX, int *attackerY)
+bool isTargetUnderThreat(char chessBoard[SIZE][SIZE], logic L, int target_x, int target_y)
 {
-    L.x_mov = targetX, L.y_mov = targetY;
+    L.x_mov = target_x, L.y_mov = target_y;
     L.blocked = true;
 
-    // Scan the chess board an look if a move is possible against the target.
     for (int i = 0; i < SIZE; ++i)
     {
         for (int j = 0; j < SIZE; ++j)
         {
             L.y_sel = i, L.x_sel = j;
 
-            // Will only pick pieces of type lower(player one) or upper(player two) and then make a move against the target.
-            if (L.playerTurn == true && isUpperOrLower(chessBoard[i][j]) == true && chessBoard[i][j] != ' ')
+            if (chessBoard[i][j] != ' ')
             {
                 if (gameRules(chessBoard, L) == true)
                 {
-                    scanBoard(chessBoard, L, &L.blocked, false, NULL);
+                    L = isPathBlocked(chessBoard, L);
 
                     if (L.blocked == false)
                     {
-                        if (attackerX != NULL && attackerY != NULL)
-                        {
-                            *attackerY = L.y_sel, *attackerX = L.x_sel;
-                            return true;
-                        }
-                        else
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            else if (L.playerTurn == false && isUpperOrLower(chessBoard[i][j]) == false && chessBoard[i][j] != ' ')
-            {
-                if (gameRules(chessBoard, L) == true)
-                {
-                    scanBoard(chessBoard, L, &L.blocked, false, NULL);
-
-                    if (L.blocked == false)
-                    {
-                        if (attackerX != NULL && attackerY != NULL)
-                        {
-                            *attackerY = L.y_sel, *attackerX = L.x_sel;
-                            return true;
-                        }
-                        else
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }
@@ -754,7 +680,6 @@ bool lookForMoveAtTarget(char chessBoard[SIZE][SIZE], logic L,
 
 bool targetStatus(char chessBoard[SIZE][SIZE], logic L)
 {
-    // Evaluate status of the movement target for player 1 and player 2.
     if (L.playerTurn == true)
     {
         if (chessBoard[L.y_mov][L.x_mov] == ' ' || isUpperOrLower(chessBoard[L.y_mov][L.x_mov]) == false)
@@ -775,7 +700,6 @@ bool targetStatus(char chessBoard[SIZE][SIZE], logic L)
 
 bool isUpperOrLower(char letter)
 {
-    // Try if letter upper(true) or lower(false) case.
     bool result = false;
 
     if (letter >= 'A' && letter <= 'Z')
@@ -789,121 +713,4 @@ bool isUpperOrLower(char letter)
     }
 
     return result;
-}
-
-bool checkmate(char chessBoard[SIZE][SIZE], logic L)
-{
-    // Will get the kings position.
-    int x = 0, y = 0;
-    int sizeOfArray = 0;
-    int attackerX = 0, attackerY = 0;
-
-    L.x_sel = L.x_mov, L.y_sel = L.y_mov;
-
-    // Scan if kings is in check or not.
-    if (L.playerTurn == true)
-    {
-        L.playerTurn = false;
-        if (lookForMoveAtTarget(chessBoard, L,
-                                kingP1.kingX, kingP1.kingY,
-                                &attackerX, &attackerY) == false)
-        {
-            return false;
-        }
-
-        y = kingP1.kingY, x = kingP1.kingX;
-    }
-    else
-    {
-        L.playerTurn = true;
-        if (lookForMoveAtTarget(chessBoard, L,
-                                kingP2.kingX, kingP2.kingY,
-                                &attackerX, &attackerY) == false)
-        {
-            return false;
-        }
-
-        y = kingP2.kingY, x = kingP2.kingX;
-    }
-
-    // Scan the kings surroundings for a possiblity to move out of danger.
-    for (int i = 0; i < SIZE; ++i)
-    {
-        switch (i)
-        {
-        case 0:
-            y--;
-            break;
-        case 1:
-            x++;
-            break;
-        case 2:
-            y++;
-            break;
-        case 3:
-            y++;
-            break;
-        case 4:
-            x--;
-            break;
-        case 5:
-            x--;
-            break;
-        case 6:
-            y--;
-            break;
-        case 7:
-            y--;
-            break;
-        }
-
-        if (L.playerTurn == false)
-        {
-            if ((chessBoard[y][x] == ' ' || isUpperOrLower(chessBoard[y][x]) == false) &&
-                y >= 0 && y <= 7 && x >= 0 && x <= 7)
-            {
-                if (lookForMoveAtTarget(chessBoard, L, x, y, NULL, NULL) == false)
-                    return false;
-            }
-        }
-        else
-        {
-            if ((chessBoard[y][x] == ' ' || isUpperOrLower(chessBoard[y][x]) == false) &&
-                y >= 0 && y <= 7 && x >= 0 && x <= 7)
-            {
-                if (lookForMoveAtTarget(chessBoard, L, x, y, NULL, NULL) == false)
-                    return false;
-            }
-        }
-    }
-
-    x = x + 1, y = y + 1;
-
-    L.x_sel = attackerX, L.y_sel = attackerY;
-    L.x_mov = x, L.y_mov = y;
-
-    L.playerTurn = L.playerTurn == true ? false : true;
-
-    // Get attackers path to the target.
-    int *path = scanBoard(chessBoard, L, &L.blocked, true, &sizeOfArray);
-
-    // Finally, see if the threat can be removed or blocked.
-    chessBoard[L.y_mov][L.x_mov] = ' ';
-    for (int i = 0; i < sizeOfArray; i += 2)
-    {
-        if (lookForMoveAtTarget(chessBoard, L, path[i + 1], path[i], &attackerX, &attackerY) == true)
-        {
-            (L.playerTurn == true) ? (chessBoard[L.y_mov][L.x_mov] = 'W') : (chessBoard[L.y_mov][L.x_mov] = 'w');
-
-            free(path);
-            drawConsole(chessBoard);
-            return false;
-        }
-    }
-    (L.playerTurn == true) ? (chessBoard[L.y_mov][L.x_mov] = 'W') : (chessBoard[L.y_mov][L.x_mov] = 'w');
-
-    free(path);
-    drawConsole(chessBoard);
-
-    return true;
 }

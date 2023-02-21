@@ -25,9 +25,8 @@ cast L_cast;
 typedef struct kingTracker
 {
     int kingX, kingY;
-} kingXY;
+} KingPosition;
 
-kingXY kingP1;
-kingXY kingP2;
+KingPosition kingP1, kingP2;
 
 #endif // CHESS_STRUCTS_H
