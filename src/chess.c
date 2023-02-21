@@ -450,31 +450,24 @@ next:
 
 bool knight(char chessBoard[SIZE][SIZE], logic L)
 {
-    // Check move pattern, if it's correct, continue, else return false.
     if (L.y_mov == L.y_sel + 2 && (L.x_mov == L.x_sel + 1 || L.x_mov == L.x_sel - 1))
     {
-        goto next;
+        return targetStatus(chessBoard, L);
     }
     else if (L.y_mov == L.y_sel - 2 && (L.x_mov == L.x_sel + 1 || L.x_mov == L.x_sel - 1))
     {
-        goto next;
+        return targetStatus(chessBoard, L);
     }
     else if (L.x_mov == L.x_sel + 2 && (L.y_mov == L.y_sel + 1 || L.y_mov == L.y_sel - 1))
     {
-        goto next;
+        return targetStatus(chessBoard, L);
     }
     else if (L.x_mov == L.x_sel - 2 && (L.y_mov == L.y_sel + 1 || L.y_mov == L.y_sel - 1))
     {
-        goto next;
-    }
-    else
-    {
-        return false;
+        return targetStatus(chessBoard, L);
     }
 
-next:
-
-    return targetStatus(chessBoard, L);
+    return false;
 }
 
 bool bishop(char chessBoard[SIZE][SIZE], logic L)
