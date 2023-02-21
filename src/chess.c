@@ -96,7 +96,6 @@ logic getUserInput(char chessBoard[SIZE][SIZE], logic L)
         }
     }
 
-    // Make sure the input is of correct length.
     if (strlen(userInput) > 4 || strlen(userInput) < 4)
     {
         printf("\nWrong input format, it should be:\n[LETTER][SINGLE DIGIT][LETTER][SINGLE DIGIT]\nPress any key to continue...");
@@ -105,7 +104,6 @@ logic getUserInput(char chessBoard[SIZE][SIZE], logic L)
         return L;
     }
 
-    // Input should be of correct decimal value using the ASCII table.
     sizeOfArray = 0;
     while (userInput[sizeOfArray] != '\0')
     {
@@ -172,7 +170,7 @@ logic executeCastlingMove(char chessBoard[SIZE][SIZE], logic L, int kingX, int k
 {
     char piece_in_hand = L.playerTurn == true ? 'R' : 'r';
 
-    if (L_cast.shortCast == true)
+    if (L_cast.shortCast)
     {
         chessBoard[L_cast.row][7] = ' ';
     }
@@ -327,8 +325,8 @@ void drawConsole(char chessBoard[SIZE][SIZE])
 
 bool gameRules(char chessBoard[SIZE][SIZE], logic L)
 {
-    if ((L.playerTurn == true && isUpperOrLower(chessBoard[L.y_sel][L.x_sel]) == true) ||
-        (L.playerTurn == false && isUpperOrLower(chessBoard[L.y_sel][L.x_sel]) == false))
+    if ((L.playerTurn && isUpperOrLower(chessBoard[L.y_sel][L.x_sel])) ||
+        (!L.playerTurn && !isUpperOrLower(chessBoard[L.y_sel][L.x_sel])))
     {
         if (chessBoard[L.y_sel][L.x_sel] == 'P' || chessBoard[L.y_sel][L.x_sel] == 'p')
         {
@@ -361,7 +359,7 @@ bool gameRules(char chessBoard[SIZE][SIZE], logic L)
 
 bool pawn(char chessBoard[SIZE][SIZE], logic L)
 {
-    if (L.playerTurn == true)
+    if (L.playerTurn)
     {
         if (L.y_sel == 1 && L.y_mov == L.y_sel + 2 && L.x_sel == L.x_mov)
         {
@@ -386,7 +384,7 @@ bool pawn(char chessBoard[SIZE][SIZE], logic L)
             }
         }
     }
-    else if (L.playerTurn == false)
+    else if (!L.playerTurn)
     {
 
         if (L.y_sel == 6 && L.y_mov == L.y_sel - 2 && L.x_sel == L.x_mov)
@@ -406,7 +404,7 @@ bool pawn(char chessBoard[SIZE][SIZE], logic L)
         else if (L.y_mov == L.y_sel - 1 && L.x_sel != L.x_mov && (L.x_mov == L.x_sel + 1 || L.x_mov == L.x_sel - 1) &&
                  chessBoard[L.y_mov][L.x_mov] != ' ')
         {
-            if (isUpperOrLower(chessBoard[L.y_mov][L.x_mov]) == true)
+            if (isUpperOrLower(chessBoard[L.y_mov][L.x_mov]))
             {
                 return true;
             }
@@ -418,70 +416,68 @@ bool pawn(char chessBoard[SIZE][SIZE], logic L)
 
 bool rook(char chessBoard[SIZE][SIZE], logic L)
 {
+    bool moveIsOK = false;
+
     if (L.x_sel > L.x_mov && L.y_sel == L.y_mov)
     {
-        goto next;
+        moveIsOK = true;
     }
     else if (L.x_sel < L.x_mov && L.y_sel == L.y_mov)
     {
-        goto next;
+        moveIsOK = true;
     }
     else if (L.y_sel > L.y_mov && L.x_sel == L.x_mov)
     {
-        goto next;
+        moveIsOK = true;
     }
     else if (L.y_sel < L.y_mov && L.x_sel == L.x_mov)
     {
-        goto next;
-    }
-    else
-    {
-        return false;
+        moveIsOK = true;
     }
 
-next:
-
-    if (targetStatus(chessBoard, L) == true)
+    if (targetStatus(chessBoard, L) && moveIsOK)
     {
-        (L.playerTurn == true) ? (L_cast.movedP1 = true) : (L_cast.movedP2 = true);
+        if (L.playerTurn)
+        {
+            L_cast.movedP1 = true;
+        }
+        else
+        {
+            L_cast.movedP2 = true;
+        }
+
         return true;
     }
+
+    return false;
 }
 
 bool knight(char chessBoard[SIZE][SIZE], logic L)
 {
-    // Check move pattern, if it's correct, continue, else return false.
     if (L.y_mov == L.y_sel + 2 && (L.x_mov == L.x_sel + 1 || L.x_mov == L.x_sel - 1))
     {
-        goto next;
+        return targetStatus(chessBoard, L);
     }
     else if (L.y_mov == L.y_sel - 2 && (L.x_mov == L.x_sel + 1 || L.x_mov == L.x_sel - 1))
     {
-        goto next;
+        return targetStatus(chessBoard, L);
     }
     else if (L.x_mov == L.x_sel + 2 && (L.y_mov == L.y_sel + 1 || L.y_mov == L.y_sel - 1))
     {
-        goto next;
+        return targetStatus(chessBoard, L);
     }
     else if (L.x_mov == L.x_sel - 2 && (L.y_mov == L.y_sel + 1 || L.y_mov == L.y_sel - 1))
     {
-        goto next;
-    }
-    else
-    {
-        return false;
+        return targetStatus(chessBoard, L);
     }
 
-next:
-
-    return targetStatus(chessBoard, L);
+    return false;
 }
 
 bool bishop(char chessBoard[SIZE][SIZE], logic L)
 {
     int differenceX = 0, differenceY = 0;
 
-    // Diagonal movement.
     if (L.x_sel < L.x_mov)
     {
         differenceX = L.x_mov - L.x_sel;
@@ -537,77 +533,69 @@ bool queen(char chessBoard[SIZE][SIZE], logic L)
 
     if (L.x_sel > L.x_mov && L.y_sel == L.y_mov)
     {
-        goto next;
+        return targetStatus(chessBoard, L);
     }
     else if (L.x_sel < L.x_mov && L.y_sel == L.y_mov)
     {
-        goto next;
+        return targetStatus(chessBoard, L);
     }
     else if (L.y_sel > L.y_mov && L.x_sel == L.x_mov)
     {
-        goto next;
+        return targetStatus(chessBoard, L);
     }
     else if (L.y_sel < L.y_mov && L.x_sel == L.x_mov)
     {
-        goto next;
-    }
-    else
-    {
-        return false;
+        return targetStatus(chessBoard, L);
     }
 
-next:
-
-    return targetStatus(chessBoard, L);
+    return false;
 }
 
 bool king(char chessBoard[SIZE][SIZE], logic L)
 {
-    if (castling(chessBoard, L) == true)
+    bool moveIsOK = false;
+
+    if (castling(chessBoard, L))
+    {
         return true;
+    }
 
     if (L.y_mov == L.y_sel - 1 && L.x_mov == L.x_sel)
     {
-        goto next;
+        moveIsOK = true;
     }
     else if (L.y_mov == L.y_sel - 1 && L.x_mov == L.x_sel + 1)
     {
-        goto next;
+        moveIsOK = true;
     }
     else if (L.y_mov == L.y_sel && L.x_mov == L.x_sel + 1)
     {
-        goto next;
+        moveIsOK = true;
     }
     else if (L.y_mov == L.y_sel + 1 && L.x_mov == L.x_sel + 1)
     {
-        goto next;
+        moveIsOK = true;
     }
     else if (L.y_mov == L.y_sel + 1 && L.x_mov == L.x_sel)
     {
-        goto next;
+        moveIsOK = true;
     }
     else if (L.y_mov == L.y_sel + 1 && L.x_mov == L.x_sel - 1)
     {
-        goto next;
+        moveIsOK = true;
     }
     else if (L.y_mov == L.y_sel && L.x_mov == L.x_sel - 1)
     {
-        goto next;
+        moveIsOK = true;
     }
     else if (L.y_mov == L.y_sel - 1 && L.x_mov == L.x_sel - 1)
     {
-        goto next;
-    }
-    else
-    {
-        return false;
+        moveIsOK = true;
     }
 
-next:
-
-    if (targetStatus(chessBoard, L) == true)
+    if (targetStatus(chessBoard, L) && moveIsOK)
     {
-        if (L.playerTurn == true)
+        if (L.playerTurn)
         {
             L_cast.movedP1 = true;
             kingP1.kingY = L.y_mov;
@@ -619,9 +607,11 @@ next:
             kingP2.kingY = L.y_mov;
             kingP2.kingX = L.x_mov;
         }
+
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 bool castling(char chessBoard[SIZE][SIZE], logic L)
