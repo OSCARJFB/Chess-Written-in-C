@@ -10,7 +10,6 @@
 #include "chess_prototypes.h"
 #include "chess_macros.h"
 #include "chess_structs.h"
-#include "loglib.h"
 
 void failed_allocation(void)
 {
@@ -45,9 +44,6 @@ logic initGame(logic L)
 
     L.is_running = L.playerTurn = true;
     L_cast.movedP1 = L_cast.movedP2 = false;
-
-    kingP1.kingX = 3, kingP1.kingY = 0;
-    kingP2.kingX = 3, kingP2.kingY = 7;
 
     return L;
 }
@@ -145,8 +141,8 @@ logic getUserInput(char chessBoard[SIZE][SIZE], logic L)
 
 logic executeMove(char chessBoard[SIZE][SIZE], logic L)
 {
-    int kingX = L.playerTurn == true ? kingP1.kingX : kingP2.kingX;
-    int kingY = L.playerTurn == true ? kingP1.kingY : kingP2.kingY;
+    int kingX = 0, kingY = 0;
+    findTheKing(chessBoard, &kingX, &kingX, L.playerTurn); 
 
     if (L.blocked == false || chessBoard[L.y_sel][L.x_sel] == 'k' || chessBoard[L.y_sel][L.x_sel] == 'K')
     {
@@ -309,7 +305,7 @@ void drawConsole(char chessBoard[SIZE][SIZE])
 {
     int board_numbers = 1;
 
-    system(SYSTEM);
+    system("clear");
 
     for (int i = 0; i < SIZE; ++i)
     {
@@ -598,14 +594,10 @@ bool king(char chessBoard[SIZE][SIZE], logic L)
         if (L.playerTurn)
         {
             L_cast.movedP1 = true;
-            kingP1.kingY = L.y_mov;
-            kingP1.kingX = L.x_mov;
         }
         else
         {
             L_cast.movedP2 = true;
-            kingP2.kingY = L.y_mov;
-            kingP2.kingX = L.x_mov;
         }
 
         return true;
@@ -639,9 +631,10 @@ bool castling(char chessBoard[SIZE][SIZE], logic L)
     return false;
 }
 
-bool isTargetUnderThreat(char chessBoard[SIZE][SIZE], logic L, int target_x, int target_y)
+bool isTargetUnderThreat(char chessBoard[SIZE][SIZE], logic L,
+                         int x, int y)
 {
-    L.x_mov = target_x, L.y_mov = target_y;
+    L.x_mov = x, L.y_mov = y;
     L.blocked = true;
 
     for (int i = 0; i < SIZE; ++i)
@@ -703,4 +696,71 @@ bool isUpperOrLower(char letter)
     }
 
     return result;
+}
+
+bool checkmate(char chessBoard[SIZE][SIZE], logic L)
+{
+    int x = 0, y = 0;
+
+    if (!findTheKing(chessBoard, &x, &y, L.playerTurn))
+    {
+        puts("checkmate: Error Couldn't find the king.");
+    }
+
+    if (!isKingInCheck(chessBoard, L, x, y))
+    {
+        return false;
+    }
+
+    if (!isKingLocked(chessBoard, L, x, y))
+    {
+        return false;
+    }
+
+    if (!isThreatRemoveable(chessBoard, L, x, y))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool findTheKing(char chessBoard[SIZE][SIZE],
+                 int *x, int *y, bool playerTurn)
+{
+    char king = playerTurn == true ? 'W' : 'w';
+
+    for (int i = 0; i < SIZE; ++i)
+    {
+        for (int j = 0; j < SIZE; ++j)
+        {
+            if (chessBoard[i][j] == king)
+            {
+                *x = j;
+                *y = i;
+
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool isKingInCheck(char chessBoard[SIZE][SIZE], logic L,
+                   int x, int y)
+{
+    return true;
+}
+
+bool isKingLocked(char chessBoard[SIZE][SIZE], logic L,
+                  int x, int y)
+{
+    return true;
+}
+
+bool isThreatRemoveable(char chessBoard[SIZE][SIZE], logic L,
+                        int x, int y)
+{
+    return true;
 }
