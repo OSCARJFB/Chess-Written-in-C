@@ -14,7 +14,7 @@
 void failed_allocation(void)
 {
     printf("Memory allocation failed:\nError exit with return code 1");
-    exit(1);
+    exit(EXIT_FAILURE);
 }
 
 int main(void)
@@ -34,7 +34,7 @@ int main(void)
     L = initGame(L);
     runGame(chessBoard, L);
 
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 logic initGame(logic L)
@@ -142,7 +142,11 @@ logic getUserInput(char chessBoard[SIZE][SIZE], logic L)
 logic executeMove(char chessBoard[SIZE][SIZE], logic L)
 {
     int kingX = 0, kingY = 0;
-    findTheKing(chessBoard, &kingX, &kingX, L.playerTurn); 
+    if(!findTheKing(chessBoard, &kingX, &kingX, L.playerTurn))
+    {
+        puts("checkmate: Error Couldn't find the king.");
+        exit(EXIT_FAILURE); 
+    }
 
     if (L.blocked == false || chessBoard[L.y_sel][L.x_sel] == 'k' || chessBoard[L.y_sel][L.x_sel] == 'K')
     {
@@ -705,6 +709,7 @@ bool checkmate(char chessBoard[SIZE][SIZE], logic L)
     if (!findTheKing(chessBoard, &x, &y, L.playerTurn))
     {
         puts("checkmate: Error Couldn't find the king.");
+        exit(EXIT_FAILURE); 
     }
 
     if (!isKingInCheck(chessBoard, L, x, y))
@@ -726,7 +731,7 @@ bool checkmate(char chessBoard[SIZE][SIZE], logic L)
 }
 
 bool findTheKing(char chessBoard[SIZE][SIZE],
-                 int *x, int *y, bool playerTurn)
+                 int *kingX, int *kingY, bool playerTurn)
 {
     char king = playerTurn == true ? 'W' : 'w';
 
@@ -736,8 +741,8 @@ bool findTheKing(char chessBoard[SIZE][SIZE],
         {
             if (chessBoard[i][j] == king)
             {
-                *x = j;
-                *y = i;
+                *kingX = j;
+                *kingY = i;
 
                 return true;
             }
@@ -748,19 +753,73 @@ bool findTheKing(char chessBoard[SIZE][SIZE],
 }
 
 bool isKingInCheck(char chessBoard[SIZE][SIZE], logic L,
-                   int x, int y)
+                   int kingX, int kingY)
 {
-    return true;
+    return isTargetUnderThreat(chessBoard, L, kingX, kingY);
 }
 
 bool isKingLocked(char chessBoard[SIZE][SIZE], logic L,
-                  int x, int y)
+                  int kingX, int kingY)
 {
+    for(int i = 0; i < SIZE; ++i) 
+    {
+        switch (i)
+        {
+            case 0:
+                --kingY; 
+                break;
+            case 1: 
+                ++kingX;
+                break;
+            case 2:
+                ++kingY;
+                break;
+            case 3: 
+                ++kingY;
+                break;
+            case 4: 
+                --kingX;
+                break;
+            case 5: 
+                --kingX;
+                break;
+            case 6:
+                --kingY;
+                break;
+            case 7: 
+                --kingY;
+                break;
+        }
+
+        if(L.playerTurn == true) 
+        {
+            if((chessBoard[kingY][kingX] == ' ' || !isUpperOrLower(chessBoard[kingY][kingX])) && 
+                kingY >= 0 && kingY <= 7 && kingX >= 0 && kingX <= 7)
+            {
+                if(!isTargetUnderThreat(chessBoard, L, kingX, kingY))
+                {
+                    return false;
+                }
+            }
+        }
+        else 
+        {
+            if((chessBoard[kingY][kingX] == ' ' || isUpperOrLower(chessBoard[kingY][kingX])) &&
+                kingY >= 0 && kingY <= 7 && kingX >= 0 && kingX <= 7)
+            {
+                if(!isTargetUnderThreat(chessBoard, L, kingX, kingY))
+                {
+                    return false;
+                }
+            }
+        }
+    }
+
     return true;
 }
 
 bool isThreatRemoveable(char chessBoard[SIZE][SIZE], logic L,
-                        int x, int y)
+                        int kingX, int kingY)
 {
     return true;
 }
