@@ -2,8 +2,8 @@
 # https://github.com/OSCARJFB
 
 # Compile code.
-main: chess.c loglib.o 
-	cc chess.c -o chess loglib.o
+main: chess.c
+	cc chess.c -o chess
 
 # Remove all object files.
 clean:
