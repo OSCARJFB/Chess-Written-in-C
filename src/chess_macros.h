@@ -6,7 +6,7 @@
 #ifndef CHESS_MACROS_H
 #define CHESS_MACROS_H
 
-#define SIZE 8
+#define SIZE_EIGHT 8
 #define ENTER 10
 
 #ifdef linux

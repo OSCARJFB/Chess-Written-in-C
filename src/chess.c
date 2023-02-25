@@ -20,7 +20,7 @@ void failed_allocation(void)
 int main(void)
 {
     struct logic L;
-    char chessBoard[SIZE][SIZE] =
+    char chessBoard[SIZE_EIGHT][SIZE_EIGHT] =
         {
             'R', 'K', 'B', 'Q', 'W', 'B', 'K', 'R',
             'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P',
@@ -48,7 +48,7 @@ logic initGame(logic L)
     return L;
 }
 
-void runGame(char chessBoard[SIZE][SIZE], logic L)
+void runGame(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
 {
     while (L.is_running == true)
     {
@@ -61,7 +61,7 @@ void runGame(char chessBoard[SIZE][SIZE], logic L)
     printf("\n###### Checkmate ######\n");
 }
 
-logic getUserInput(char chessBoard[SIZE][SIZE], logic L)
+logic getUserInput(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
 {
     char *userInput = malloc(sizeof(char));
     if (userInput == NULL)
@@ -139,13 +139,13 @@ logic getUserInput(char chessBoard[SIZE][SIZE], logic L)
     return L;
 }
 
-logic executeMove(char chessBoard[SIZE][SIZE], logic L)
+logic executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
 {
     int kingX = 0, kingY = 0;
-    if(!findTheKing(chessBoard, &kingX, &kingX, L.playerTurn))
+    if (!findTheKing(chessBoard, &kingX, &kingX, L.playerTurn))
     {
         puts("checkmate: Error Couldn't find the king.");
-        exit(EXIT_FAILURE); 
+        exit(EXIT_FAILURE);
     }
 
     if (L.blocked == false || chessBoard[L.y_sel][L.x_sel] == 'k' || chessBoard[L.y_sel][L.x_sel] == 'K')
@@ -166,7 +166,7 @@ logic executeMove(char chessBoard[SIZE][SIZE], logic L)
     return L;
 }
 
-logic executeCastlingMove(char chessBoard[SIZE][SIZE], logic L, int kingX, int kingY)
+logic executeCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L, int kingX, int kingY)
 {
     char piece_in_hand = L.playerTurn == true ? 'R' : 'r';
 
@@ -197,7 +197,7 @@ logic executeCastlingMove(char chessBoard[SIZE][SIZE], logic L, int kingX, int k
     return L;
 }
 
-logic executeRegularMove(char chessBoard[SIZE][SIZE], logic L, int kingX, int kingY)
+logic executeRegularMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L, int kingX, int kingY)
 {
     char piece_in_hand = chessBoard[L.y_mov][L.x_mov];
 
@@ -255,7 +255,7 @@ int translateLetter(char letter)
     }
 }
 
-logic isPathBlocked(char chessBoard[SIZE][SIZE], logic L)
+logic isPathBlocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
 {
     int index = 0;
     int x = L.x_sel, y = L.y_sel;
@@ -266,6 +266,11 @@ logic isPathBlocked(char chessBoard[SIZE][SIZE], logic L)
         L.blocked = false;
         return L;
     }
+
+    /*
+     *  Important 2d arrays are reversed from the regular conception of x and y in algebra. 
+     *  x, y thus become y, x when indexed. hence pathY must be iterated before pathX.
+     */
 
     while (x != L.x_mov || y != L.y_mov)
     {
@@ -305,16 +310,16 @@ logic isPathBlocked(char chessBoard[SIZE][SIZE], logic L)
     return L;
 }
 
-void drawConsole(char chessBoard[SIZE][SIZE])
+void drawConsole(char chessBoard[SIZE_EIGHT][SIZE_EIGHT])
 {
     int board_numbers = 1;
 
     system("clear");
 
-    for (int i = 0; i < SIZE; ++i)
+    for (int i = 0; i < SIZE_EIGHT; ++i)
     {
         printf("%d.", board_numbers++);
-        for (int j = 0; j < SIZE; ++j)
+        for (int j = 0; j < SIZE_EIGHT; ++j)
         {
             printf("[%c]", chessBoard[i][j]);
         }
@@ -323,7 +328,7 @@ void drawConsole(char chessBoard[SIZE][SIZE])
     printf("   A  B  C  D  E  F  G  H\n");
 }
 
-bool gameRules(char chessBoard[SIZE][SIZE], logic L)
+bool gameRules(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
 {
     if ((L.playerTurn && isUpperOrLower(chessBoard[L.y_sel][L.x_sel])) ||
         (!L.playerTurn && !isUpperOrLower(chessBoard[L.y_sel][L.x_sel])))
@@ -357,7 +362,7 @@ bool gameRules(char chessBoard[SIZE][SIZE], logic L)
     return false;
 }
 
-bool pawn(char chessBoard[SIZE][SIZE], logic L)
+bool pawn(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
 {
     if (L.playerTurn)
     {
@@ -414,7 +419,7 @@ bool pawn(char chessBoard[SIZE][SIZE], logic L)
     return false;
 }
 
-bool rook(char chessBoard[SIZE][SIZE], logic L)
+bool rook(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
 {
     bool moveIsOK = false;
 
@@ -452,7 +457,7 @@ bool rook(char chessBoard[SIZE][SIZE], logic L)
     return false;
 }
 
-bool knight(char chessBoard[SIZE][SIZE], logic L)
+bool knight(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
 {
     if (L.y_mov == L.y_sel + 2 && (L.x_mov == L.x_sel + 1 || L.x_mov == L.x_sel - 1))
     {
@@ -474,7 +479,7 @@ bool knight(char chessBoard[SIZE][SIZE], logic L)
     return false;
 }
 
-bool bishop(char chessBoard[SIZE][SIZE], logic L)
+bool bishop(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
 {
     int differenceX = 0, differenceY = 0;
 
@@ -504,7 +509,7 @@ bool bishop(char chessBoard[SIZE][SIZE], logic L)
     return targetStatus(chessBoard, L);
 }
 
-bool queen(char chessBoard[SIZE][SIZE], logic L)
+bool queen(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
 {
     int differenceX = 0, differenceY = 0;
 
@@ -551,7 +556,7 @@ bool queen(char chessBoard[SIZE][SIZE], logic L)
     return false;
 }
 
-bool king(char chessBoard[SIZE][SIZE], logic L)
+bool king(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
 {
     bool moveIsOK = false;
 
@@ -610,7 +615,7 @@ bool king(char chessBoard[SIZE][SIZE], logic L)
     return false;
 }
 
-bool castling(char chessBoard[SIZE][SIZE], logic L)
+bool castling(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
 {
     const int shortC = 7, longC = 0;
     L_cast.row = L.playerTurn == true ? 0 : 7;
@@ -635,15 +640,15 @@ bool castling(char chessBoard[SIZE][SIZE], logic L)
     return false;
 }
 
-bool isTargetUnderThreat(char chessBoard[SIZE][SIZE], logic L,
+bool isTargetUnderThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
                          int x, int y)
 {
     L.x_mov = x, L.y_mov = y;
     L.blocked = true;
 
-    for (int i = 0; i < SIZE; ++i)
+    for (int i = 0; i < SIZE_EIGHT; ++i)
     {
-        for (int j = 0; j < SIZE; ++j)
+        for (int j = 0; j < SIZE_EIGHT; ++j)
         {
             L.y_sel = i, L.x_sel = j;
 
@@ -665,7 +670,7 @@ bool isTargetUnderThreat(char chessBoard[SIZE][SIZE], logic L,
     return false;
 }
 
-bool targetStatus(char chessBoard[SIZE][SIZE], logic L)
+bool targetStatus(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
 {
     if (L.playerTurn == true)
     {
@@ -702,14 +707,14 @@ bool isUpperOrLower(char letter)
     return result;
 }
 
-bool checkmate(char chessBoard[SIZE][SIZE], logic L)
+bool checkmate(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
 {
     int x = 0, y = 0;
 
     if (!findTheKing(chessBoard, &x, &y, L.playerTurn))
     {
         puts("checkmate: Error Couldn't find the king.");
-        exit(EXIT_FAILURE); 
+        exit(EXIT_FAILURE);
     }
 
     if (!isKingInCheck(chessBoard, L, x, y))
@@ -730,14 +735,14 @@ bool checkmate(char chessBoard[SIZE][SIZE], logic L)
     return true;
 }
 
-bool findTheKing(char chessBoard[SIZE][SIZE],
+bool findTheKing(char chessBoard[SIZE_EIGHT][SIZE_EIGHT],
                  int *kingX, int *kingY, bool playerTurn)
 {
     char king = playerTurn == true ? 'W' : 'w';
 
-    for (int i = 0; i < SIZE; ++i)
+    for (int i = 0; i < SIZE_EIGHT; ++i)
     {
-        for (int j = 0; j < SIZE; ++j)
+        for (int j = 0; j < SIZE_EIGHT; ++j)
         {
             if (chessBoard[i][j] == king)
             {
@@ -752,62 +757,62 @@ bool findTheKing(char chessBoard[SIZE][SIZE],
     return false;
 }
 
-bool isKingInCheck(char chessBoard[SIZE][SIZE], logic L,
+bool isKingInCheck(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
                    int kingX, int kingY)
 {
     return isTargetUnderThreat(chessBoard, L, kingX, kingY);
 }
 
-bool isKingLocked(char chessBoard[SIZE][SIZE], logic L,
+bool isKingLocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
                   int kingX, int kingY)
 {
-    for(int i = 0; i < SIZE; ++i) 
+    for (int i = 0; i < SIZE_EIGHT; ++i)
     {
         switch (i)
         {
-            case 0:
-                --kingY; 
-                break;
-            case 1: 
-                ++kingX;
-                break;
-            case 2:
-                ++kingY;
-                break;
-            case 3: 
-                ++kingY;
-                break;
-            case 4: 
-                --kingX;
-                break;
-            case 5: 
-                --kingX;
-                break;
-            case 6:
-                --kingY;
-                break;
-            case 7: 
-                --kingY;
-                break;
+        case 0:
+            --kingY;
+            break;
+        case 1:
+            ++kingX;
+            break;
+        case 2:
+            ++kingY;
+            break;
+        case 3:
+            ++kingY;
+            break;
+        case 4:
+            --kingX;
+            break;
+        case 5:
+            --kingX;
+            break;
+        case 6:
+            --kingY;
+            break;
+        case 7:
+            --kingY;
+            break;
         }
 
-        if(L.playerTurn == true) 
+        if (L.playerTurn == true)
         {
-            if((chessBoard[kingY][kingX] == ' ' || !isUpperOrLower(chessBoard[kingY][kingX])) && 
+            if ((chessBoard[kingY][kingX] == ' ' || !isUpperOrLower(chessBoard[kingY][kingX])) &&
                 kingY >= 0 && kingY <= 7 && kingX >= 0 && kingX <= 7)
             {
-                if(!isTargetUnderThreat(chessBoard, L, kingX, kingY))
+                if (!isTargetUnderThreat(chessBoard, L, kingX, kingY))
                 {
                     return false;
                 }
             }
         }
-        else 
+        else
         {
-            if((chessBoard[kingY][kingX] == ' ' || isUpperOrLower(chessBoard[kingY][kingX])) &&
+            if ((chessBoard[kingY][kingX] == ' ' || isUpperOrLower(chessBoard[kingY][kingX])) &&
                 kingY >= 0 && kingY <= 7 && kingX >= 0 && kingX <= 7)
             {
-                if(!isTargetUnderThreat(chessBoard, L, kingX, kingY))
+                if (!isTargetUnderThreat(chessBoard, L, kingX, kingY))
                 {
                     return false;
                 }
@@ -818,8 +823,92 @@ bool isKingLocked(char chessBoard[SIZE][SIZE], logic L,
     return true;
 }
 
-bool isThreatRemoveable(char chessBoard[SIZE][SIZE], logic L,
+bool isThreatRemoveable(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
                         int kingX, int kingY)
 {
+    int threatX = -1, threatY = -1;
+    int pathY[SIZE_EIGHT], pathX[SIZE_EIGHT];
+    int pathSize = 0; 
+
+    findThreat(chessBoard, L.playerTurn, kingX, kingY,
+               &threatX, &threatY);
+
+    pathSize = getPath(chessBoard, L, pathY, pathX); 
+
     return true;
+}
+
+void findThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], bool playerTurn, int kingX, int kingY,
+                int *threatX, int *threatY)
+{
+    logic L;
+
+    L.blocked = false;
+    L.playerTurn = playerTurn == true ? true : false;
+    L.x_mov = kingX;
+    L.y_mov = kingY;
+
+    for (int i = 0; i < SIZE_EIGHT; ++i)
+    {
+        for (int j = 0; j < SIZE_EIGHT; ++j)
+        {
+            L.x_sel = j;
+            L.y_sel = i;
+
+            if (gameRules(chessBoard, L))
+            {
+                L = isPathBlocked(chessBoard, L);
+                if (!L.blocked)
+                {
+                    *threatX = j; 
+                    *threatX = i; 
+                    return;
+                }
+            }
+        }
+    }
+}
+
+int getPath(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
+            int pathX[SIZE_EIGHT], int pathY[SIZE_EIGHT])
+{
+    int pathSize = 0;
+    int x = L.x_sel, y = L.y_sel;
+
+    if (chessBoard[L.y_sel][L.x_sel] == 'K' || chessBoard[L.y_sel][L.x_sel] == 'k')
+    {
+        return pathSize;
+    }
+
+    /*
+     *  Important 2d arrays are reversed from the regular conception of x and y in algebra. 
+     *  x, y thus become y, x when indexed. hence pathY must be iterated before pathX.
+     */
+
+    while (x != L.x_mov || y != L.y_mov)
+    {
+        pathY[pathSize] = y;    
+        pathX[pathSize] = x;
+        ++pathSize;
+
+        if (L.x_mov > x)
+        {
+            ++x;
+        }
+        else if (L.x_mov < x)
+        {
+            --x;
+        }
+
+        if (L.y_mov > y)
+        {
+            ++y;
+        }
+        else if (L.y_mov < y)
+        {
+            --y;
+        }
+    }
+
+    return pathSize;
 }
