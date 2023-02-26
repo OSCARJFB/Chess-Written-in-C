@@ -55,10 +55,33 @@ void runGame(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
         drawConsole(chessBoard);
         L = getUserInput(chessBoard, L);
         L = isPathBlocked(chessBoard, L);
+        // castling(); Refactor castling make it executeable from here, make the struct local instead of evil global.
         L = executeMove(chessBoard, L);
+        if (checkmate(chessBoard, L))
+        {
+            break;
+        }
     }
 
     printf("\n###### Checkmate ######\n");
+}
+
+void drawConsole(char chessBoard[SIZE_EIGHT][SIZE_EIGHT])
+{
+    int board_numbers = 1;
+
+    system("clear");
+
+    for (int i = 0; i < SIZE_EIGHT; ++i)
+    {
+        printf("%d.", board_numbers++);
+        for (int j = 0; j < SIZE_EIGHT; ++j)
+        {
+            printf("[%c]", chessBoard[i][j]);
+        }
+        printf("\n");
+    }
+    printf("   A  B  C  D  E  F  G  H\n");
 }
 
 logic getUserInput(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
@@ -150,9 +173,10 @@ logic executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
 
     if (L.blocked == false || chessBoard[L.y_sel][L.x_sel] == 'k' || chessBoard[L.y_sel][L.x_sel] == 'K')
     {
+        printf("executeMove: %c\n", chessBoard[L.y_sel][L.x_sel]);
         if (gameRules(chessBoard, L))
         {
-            if (L_cast.shortCast == true || L_cast.longCast == true)
+            if (L_cast.shortCast || L_cast.longCast)
             {
                 L = executeCastlingMove(chessBoard, L, kingX, kingY);
             }
@@ -197,7 +221,8 @@ logic executeCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L, int 
     return L;
 }
 
-logic executeRegularMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L, int kingX, int kingY)
+logic executeRegularMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
+                         int kingX, int kingY)
 {
     char piece_in_hand = chessBoard[L.y_mov][L.x_mov];
 
@@ -268,7 +293,7 @@ logic isPathBlocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
     }
 
     /*
-     *  Important 2d arrays are reversed from the regular conception of x and y in algebra. 
+     *  Important 2d arrays are reversed from the regular conception of x and y in algebra.
      *  x, y thus become y, x when indexed. hence pathY must be iterated before pathX.
      */
 
@@ -308,24 +333,6 @@ logic isPathBlocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
 
     L.blocked = false;
     return L;
-}
-
-void drawConsole(char chessBoard[SIZE_EIGHT][SIZE_EIGHT])
-{
-    int board_numbers = 1;
-
-    system("clear");
-
-    for (int i = 0; i < SIZE_EIGHT; ++i)
-    {
-        printf("%d.", board_numbers++);
-        for (int j = 0; j < SIZE_EIGHT; ++j)
-        {
-            printf("[%c]", chessBoard[i][j]);
-        }
-        printf("\n");
-    }
-    printf("   A  B  C  D  E  F  G  H\n");
 }
 
 bool gameRules(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
@@ -442,15 +449,6 @@ bool rook(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
 
     if (targetStatus(chessBoard, L) && moveIsOK)
     {
-        if (L.playerTurn)
-        {
-            L_cast.movedP1 = true;
-        }
-        else
-        {
-            L_cast.movedP2 = true;
-        }
-
         return true;
     }
 
@@ -560,11 +558,6 @@ bool king(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
 {
     bool moveIsOK = false;
 
-    if (castling(chessBoard, L))
-    {
-        return true;
-    }
-
     if (L.y_mov == L.y_sel - 1 && L.x_mov == L.x_sel)
     {
         moveIsOK = true;
@@ -600,15 +593,6 @@ bool king(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
 
     if (targetStatus(chessBoard, L) && moveIsOK)
     {
-        if (L.playerTurn)
-        {
-            L_cast.movedP1 = true;
-        }
-        else
-        {
-            L_cast.movedP2 = true;
-        }
-
         return true;
     }
 
@@ -620,13 +604,14 @@ bool castling(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
     const int shortC = 7, longC = 0;
     L_cast.row = L.playerTurn == true ? 0 : 7;
 
-    if ((L.playerTurn == true && L_cast.movedP1 == false) ||
-        (L.playerTurn == false && L_cast.movedP2 == false))
+    if ((L.playerTurn && L_cast.movedP1 == false) ||
+        (!L.playerTurn && L_cast.movedP2 == false))
     {
         if (L.x_mov == shortC && L.y_mov == L_cast.row)
         {
             L_cast.col = 5;
             L_cast.shortCast = true;
+            exit(1);
             return true;
         }
         else if (L.x_mov == longC && L.y_mov == L_cast.row)
@@ -826,16 +811,19 @@ bool isKingLocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
 bool isThreatRemoveable(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
                         int kingX, int kingY)
 {
-    int threatX = -1, threatY = -1;
+    int threatX = 0, threatY = 0;
     int pathY[SIZE_EIGHT], pathX[SIZE_EIGHT];
-    int pathSize = 0; 
+    int pathSize = 0;
 
     findThreat(chessBoard, L.playerTurn, kingX, kingY,
                &threatX, &threatY);
 
-    pathSize = getPath(chessBoard, L, pathY, pathX); 
+    L.x_sel = threatX, L.y_sel = threatY;
 
-    return true;
+    pathSize = getPath(chessBoard, L, pathX, pathY);
+
+    return removalofThreat(chessBoard, L,
+                           pathX, pathY, pathSize);
 }
 
 void findThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], bool playerTurn, int kingX, int kingY,
@@ -860,8 +848,8 @@ void findThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], bool playerTurn, int ki
                 L = isPathBlocked(chessBoard, L);
                 if (!L.blocked)
                 {
-                    *threatX = j; 
-                    *threatX = i; 
+                    *threatX = j;
+                    *threatX = i;
                     return;
                 }
             }
@@ -881,13 +869,13 @@ int getPath(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
     }
 
     /*
-     *  Important 2d arrays are reversed from the regular conception of x and y in algebra. 
+     *  Important 2d arrays are reversed from the regular conception of x and y in algebra.
      *  x, y thus become y, x when indexed. hence pathY must be iterated before pathX.
      */
 
     while (x != L.x_mov || y != L.y_mov)
     {
-        pathY[pathSize] = y;    
+        pathY[pathSize] = y;
         pathX[pathSize] = x;
         ++pathSize;
 
@@ -911,4 +899,42 @@ int getPath(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
     }
 
     return pathSize;
+}
+
+bool removalofThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
+                     int pathX[SIZE_EIGHT], int pathY[SIZE_EIGHT], int pathSize)
+{
+    for (int i = 0; i < SIZE_EIGHT; ++i)
+    {
+        for (int j = 0; j < SIZE_EIGHT; ++j)
+        {
+            if (isUpperOrLower(chessBoard[i][j]) == L.playerTurn)
+            {
+                tryMoveAtPath(chessBoard, pathX, pathY,
+                              pathSize, i, j, L);
+            }
+        }
+    }
+    return true;
+}
+
+bool tryMoveAtPath(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], int pathX[SIZE_EIGHT], int pathY[SIZE_EIGHT],
+                   int pathSize, int x, int y, logic L)
+{
+    L.playerTurn = L.playerTurn == true ? true : false;
+    L.x_sel = x;
+    L.y_sel = y;
+
+    for (int i = 0; i < pathSize; ++i)
+    {
+        L.x_mov = pathX[i];
+        L.y_mov = pathY[i];
+
+        if (gameRules(chessBoard, L))
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
