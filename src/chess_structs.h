@@ -18,8 +18,6 @@ typedef struct castling
     int row, col;
     bool shortCast, longCast;
     bool movedP1, movedP2;
-} cast;
-
-cast L_cast;
+} castling;
 
 #endif // CHESS_STRUCTS_H

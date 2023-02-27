@@ -19,7 +19,6 @@ void failed_allocation(void)
 
 int main(void)
 {
-    struct logic L;
     char chessBoard[SIZE_EIGHT][SIZE_EIGHT] =
         {
             'R', 'K', 'B', 'Q', 'W', 'B', 'K', 'R',
@@ -31,32 +30,43 @@ int main(void)
             'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p',
             'r', 'k', 'b', 'q', 'w', 'b', 'k', 'r'};
 
-    L = initGame(L);
-    runGame(chessBoard, L);
+    logic L = initGame();
+    castling castling_data = initCastling();
+
+    runGame(chessBoard, L, castling_data);
 
     return EXIT_SUCCESS;
 }
 
-logic initGame(logic L)
+logic initGame(void)
 {
+    logic L;
     L.x_sel = L.y_sel = -1;
     L.x_mov = L.y_mov = -1;
-
     L.is_running = L.playerTurn = true;
-    L_cast.movedP1 = L_cast.movedP2 = false;
 
     return L;
 }
 
-void runGame(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
+castling initCastling(void)
+{
+    castling castling_data;
+    castling_data.movedP1 = castling_data.movedP2 = false;
+    castling_data.shortCast = castling_data.longCast = false; 
+    
+    return castling_data;
+}
+
+void runGame(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], 
+            logic L, castling castling_data)
 {
     while (L.is_running == true)
     {
         drawConsole(chessBoard);
         L = getUserInput(chessBoard, L);
         L = isPathBlocked(chessBoard, L);
-        // castling(); Refactor castling make it executeable from here, make the struct local instead of evil global.
-        L = executeMove(chessBoard, L);
+        castling_data = castlingControl(chessBoard, L, castling_data);
+        L = executeMove(chessBoard, L, castling_data);
         if (checkmate(chessBoard, L))
         {
             break;
@@ -162,7 +172,33 @@ logic getUserInput(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
     return L;
 }
 
-logic executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
+castling castlingControl(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L, castling castling_data)
+{
+    const int shortC = 7, longC = 0;
+    castling_data.row = L.playerTurn == true ? 0 : 7;
+
+    if ((L.playerTurn && castling_data.movedP1 == false) ||
+        (!L.playerTurn && castling_data.movedP2 == false))
+    {
+        if (L.x_mov == shortC && L.y_mov == castling_data.row)
+        {
+            castling_data.col = 5;
+            castling_data.shortCast = true;
+            return castling_data;
+        }
+        else if (L.x_mov == longC && L.y_mov == castling_data.row)
+        {
+            castling_data.col = 3;
+            castling_data.longCast = true;
+            return castling_data;
+        }
+    }
+
+    return castling_data;
+}
+
+logic executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], 
+                  logic L, castling castling_data)
 {
     int kingX = 0, kingY = 0;
     if (!findTheKing(chessBoard, &kingX, &kingX, L.playerTurn))
@@ -176,9 +212,10 @@ logic executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
         printf("executeMove: %c\n", chessBoard[L.y_sel][L.x_sel]);
         if (gameRules(chessBoard, L))
         {
-            if (L_cast.shortCast || L_cast.longCast)
+            if (castling_data.shortCast || castling_data.longCast)
             {
-                L = executeCastlingMove(chessBoard, L, kingX, kingY);
+                L = executeCastlingMove(chessBoard, L, 
+                                        kingX, kingY, castling_data);
             }
             else
             {
@@ -190,25 +227,26 @@ logic executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
     return L;
 }
 
-logic executeCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L, int kingX, int kingY)
+logic executeCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L, 
+                          int kingX, int kingY, castling castling_data)
 {
     char piece_in_hand = L.playerTurn == true ? 'R' : 'r';
 
-    if (L_cast.shortCast)
+    if (castling_data.shortCast)
     {
-        chessBoard[L_cast.row][7] = ' ';
+        chessBoard[castling_data.row][7] = ' ';
     }
     else
     {
-        chessBoard[L_cast.row][0] = ' ';
+        chessBoard[castling_data.row][0] = ' ';
     }
 
-    chessBoard[L_cast.row][L_cast.col] = piece_in_hand;
+    chessBoard[castling_data.row][castling_data.col] = piece_in_hand;
 
     piece_in_hand = L.playerTurn == true ? 'W' : 'w';
     chessBoard[L.y_sel][L.x_sel] = ' ';
 
-    piece_in_hand = L_cast.shortCast == true ? chessBoard[L_cast.row][L_cast.col + 1] : chessBoard[L_cast.row][L_cast.col - 1];
+    piece_in_hand = castling_data.shortCast == true ? chessBoard[castling_data.row][castling_data.col + 1] : chessBoard[castling_data.row][castling_data.col - 1];
 
     L.playerTurn = L.playerTurn == true ? false : true;
 
@@ -594,32 +632,6 @@ bool king(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
     if (targetStatus(chessBoard, L) && moveIsOK)
     {
         return true;
-    }
-
-    return false;
-}
-
-bool castling(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
-{
-    const int shortC = 7, longC = 0;
-    L_cast.row = L.playerTurn == true ? 0 : 7;
-
-    if ((L.playerTurn && L_cast.movedP1 == false) ||
-        (!L.playerTurn && L_cast.movedP2 == false))
-    {
-        if (L.x_mov == shortC && L.y_mov == L_cast.row)
-        {
-            L_cast.col = 5;
-            L_cast.shortCast = true;
-            exit(1);
-            return true;
-        }
-        else if (L.x_mov == longC && L.y_mov == L_cast.row)
-        {
-            L_cast.col = 3;
-            L_cast.longCast = true;
-            return true;
-        }
     }
 
     return false;

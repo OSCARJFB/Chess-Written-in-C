@@ -8,21 +8,28 @@
 #include "chess_macros.h"
 #include "chess_structs.h"
 
-void runGame(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L);
+logic initGame(void);
+
+castling initCastling(void);
+
+void runGame(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], 
+             logic L, castling castling_data);
 
 void drawConsole(char chessBoard[SIZE_EIGHT][SIZE_EIGHT]);
 
-logic initGame(logic L);
-
 logic getUserInput(char[SIZE_EIGHT][SIZE_EIGHT], logic L);
 
-logic executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L);
+logic isPathBlocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L); 
 
-logic executeCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L, int kingX, int kingY);
+castling castlingControl(char[SIZE_EIGHT][SIZE_EIGHT], logic L, castling castling_data);
+
+logic executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], 
+                  logic L, castling castling_data);
+
+logic executeCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L, 
+                          int kingX, int kingY, castling castling_data);
 
 logic executeRegularMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L, int kingX, int kingY);
-
-logic isPathBlocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L); 
 
 int translateLetter(char letter);
 
@@ -43,8 +50,6 @@ bool bishop(char[SIZE_EIGHT][SIZE_EIGHT], logic L);
 bool queen(char[SIZE_EIGHT][SIZE_EIGHT], logic L);
 
 bool king(char[SIZE_EIGHT][SIZE_EIGHT], logic L);
-
-bool castling(char[SIZE_EIGHT][SIZE_EIGHT], logic L);
 
 bool targetStatus(char[SIZE_EIGHT][SIZE_EIGHT], logic L);
 
