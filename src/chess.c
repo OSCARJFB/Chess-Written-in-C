@@ -21,7 +21,7 @@ int main(void)
 {
     char chessBoard[SIZE_EIGHT][SIZE_EIGHT] =
         {
-            'R', 'K', 'B', 'Q', 'W', 'B', 'K', 'R',
+            'R', 'K', 'B', 'Q', 'W', ' ', ' ', 'R',
             'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P',
             ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
             ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
@@ -30,44 +30,42 @@ int main(void)
             'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p',
             'r', 'k', 'b', 'q', 'w', 'b', 'k', 'r'};
 
-    logic L = initGame();
-    castling castling_data = initCastling();
+    move m_data = initGame();
+    castling c_data = initCastling();
 
-    runGame(chessBoard, L, castling_data);
+    runGame(chessBoard, m_data, c_data);
 
     return EXIT_SUCCESS;
 }
 
-logic initGame(void)
+move initGame(void)
 {
-    logic L;
-    L.x_sel = L.y_sel = -1;
-    L.x_mov = L.y_mov = -1;
-    L.is_running = L.playerTurn = true;
+    move m_data;
+    m_data.x_sel = m_data.y_sel = -1;
+    m_data.x_mov = m_data.y_mov = -1;
+    m_data.playerTurn = true;
 
-    return L;
+    return m_data;
 }
 
 castling initCastling(void)
 {
-    castling castling_data;
-    castling_data.movedP1 = castling_data.movedP2 = false;
-    castling_data.shortCast = castling_data.longCast = false; 
-    
-    return castling_data;
+    castling c_data;
+    c_data.shortCast = c_data.longCast = false; 
+    return c_data;
 }
 
 void runGame(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], 
-            logic L, castling castling_data)
+            move m_data, castling c_data)
 {
-    while (L.is_running == true)
+    while (true)
     {
         drawConsole(chessBoard);
-        L = getUserInput(chessBoard, L);
-        L = isPathBlocked(chessBoard, L);
-        castling_data = castlingControl(chessBoard, L, castling_data);
-        L = executeMove(chessBoard, L, castling_data);
-        if (checkmate(chessBoard, L))
+        m_data = getUserInput(chessBoard, m_data);
+        m_data = isPathBlocked(chessBoard, m_data);
+        c_data = castlingControl(chessBoard, m_data, c_data);
+        m_data = executeMove(chessBoard, m_data, c_data);
+        if (checkmate(chessBoard, m_data))
         {
             break;
         }
@@ -94,7 +92,7 @@ void drawConsole(char chessBoard[SIZE_EIGHT][SIZE_EIGHT])
     printf("   A  B  C  D  E  F  G  H\n");
 }
 
-logic getUserInput(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
+move getUserInput(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 {
     char *userInput = malloc(sizeof(char));
     if (userInput == NULL)
@@ -104,7 +102,7 @@ logic getUserInput(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
 
     int key_pressed = 0, sizeOfArray = 0;
 
-    L.playerTurn == true ? printf("Player one enter a move:") : printf("Player two enter a move:");
+    m_data.playerTurn == true ? printf("Player one enter a move:") : printf("Player two enter a move:");
 
     while (key_pressed != ENTER)
     {
@@ -130,7 +128,7 @@ logic getUserInput(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
         printf("\nWrong input format, it should be:\n[LETTER][SINGLE DIGIT][LETTER][SINGLE DIGIT]\nPress any key to continue...");
         free(userInput);
         getchar();
-        return L;
+        return m_data;
     }
 
     sizeOfArray = 0;
@@ -142,26 +140,26 @@ logic getUserInput(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
             if (((int)userInput[sizeOfArray] >= 97 && (int)userInput[sizeOfArray] <= 104) ||
                 ((int)userInput[sizeOfArray] >= 65 && (int)userInput[sizeOfArray] <= 72))
             {
-                L.x_sel = translateLetter(userInput[sizeOfArray]);
+                m_data.x_sel = translateLetter(userInput[sizeOfArray]);
             }
             break;
         case 1:
             if (userInput[sizeOfArray] - '0' >= 1 && userInput[sizeOfArray] - '0' <= 9)
             {
-                L.y_sel = userInput[sizeOfArray] - '0' - 1;
+                m_data.y_sel = userInput[sizeOfArray] - '0' - 1;
             }
             break;
         case 2:
             if (((int)userInput[sizeOfArray] >= 97 && (int)userInput[sizeOfArray] <= 104) ||
                 ((int)userInput[sizeOfArray] >= 65 && (int)userInput[sizeOfArray] <= 72))
             {
-                L.x_mov = translateLetter(userInput[sizeOfArray]);
+                m_data.x_mov = translateLetter(userInput[sizeOfArray]);
             }
             break;
         case 3:
             if (userInput[sizeOfArray] - '0' >= 1 && userInput[sizeOfArray] - '0' <= 9)
             {
-                L.y_mov = userInput[sizeOfArray] - '0' - 1;
+                m_data.y_mov = userInput[sizeOfArray] - '0' - 1;
             }
             break;
         }
@@ -169,113 +167,113 @@ logic getUserInput(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
     }
 
     free(userInput);
-    return L;
+    return m_data;
 }
 
-castling castlingControl(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L, castling castling_data)
+castling castlingControl(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data)
 {
     const int shortC = 7, longC = 0;
-    castling_data.row = L.playerTurn == true ? 0 : 7;
 
-    if ((L.playerTurn && castling_data.movedP1 == false) ||
-        (!L.playerTurn && castling_data.movedP2 == false))
+    if(chessBoard[m_data.y_sel][m_data.x_sel] != 'W' && chessBoard[m_data.y_sel][m_data.x_sel] != 'w')
     {
-        if (L.x_mov == shortC && L.y_mov == castling_data.row)
-        {
-            castling_data.col = 5;
-            castling_data.shortCast = true;
-            return castling_data;
-        }
-        else if (L.x_mov == longC && L.y_mov == castling_data.row)
-        {
-            castling_data.col = 3;
-            castling_data.longCast = true;
-            return castling_data;
-        }
+        return c_data; 
     }
 
-    return castling_data;
+    c_data.row = m_data.playerTurn == true ? 0 : 7;
+
+    if (m_data.x_mov == shortC && m_data.y_mov == c_data.row)
+    {
+        c_data.col = 5;
+        c_data.shortCast = true;
+        return c_data;
+    }
+    else if (m_data.x_mov == longC && m_data.y_mov == c_data.row)
+    {
+        c_data.col = 3;
+        c_data.longCast = true;
+        return c_data;
+    }
+    
+    return c_data;
 }
 
-logic executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], 
-                  logic L, castling castling_data)
+move executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], 
+                  move m_data, castling c_data)
 {
     int kingX = 0, kingY = 0;
-    if (!findTheKing(chessBoard, &kingX, &kingX, L.playerTurn))
+
+    if (!findTheKing(chessBoard, &kingX, &kingX, m_data.playerTurn))
     {
         puts("checkmate: Error Couldn't find the king.");
         exit(EXIT_FAILURE);
     }
 
-    if (L.blocked == false || chessBoard[L.y_sel][L.x_sel] == 'k' || chessBoard[L.y_sel][L.x_sel] == 'K')
+    //if (c_data.shortCast || c_data.longCast)
+    //{
+    //    m_data = executeCastlingMove(chessBoard, m_data, 
+    //                            kingX, kingY, c_data);
+    //}
+
+    if (m_data.blocked == false || chessBoard[m_data.y_sel][m_data.x_sel] == 'k' || chessBoard[m_data.y_sel][m_data.x_sel] == 'K')
     {
-        printf("executeMove: %c\n", chessBoard[L.y_sel][L.x_sel]);
-        if (gameRules(chessBoard, L))
+        if (gameRules(chessBoard, m_data))
         {
-            if (castling_data.shortCast || castling_data.longCast)
-            {
-                L = executeCastlingMove(chessBoard, L, 
-                                        kingX, kingY, castling_data);
-            }
-            else
-            {
-                L = executeRegularMove(chessBoard, L, kingX, kingY);
-            }
+            m_data = executeRegularMove(chessBoard, m_data, kingX, kingY);
         }
     }
 
-    return L;
+    return m_data;
 }
 
-logic executeCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L, 
-                          int kingX, int kingY, castling castling_data)
+move executeCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, 
+                          int kingX, int kingY, castling c_data)
 {
-    char piece_in_hand = L.playerTurn == true ? 'R' : 'r';
+    char piece_in_hand = m_data.playerTurn == true ? 'R' : 'r';
 
-    if (castling_data.shortCast)
+    if (c_data.shortCast)
     {
-        chessBoard[castling_data.row][7] = ' ';
+        chessBoard[c_data.row][7] = ' ';
     }
     else
     {
-        chessBoard[castling_data.row][0] = ' ';
+        chessBoard[c_data.row][0] = ' ';
     }
 
-    chessBoard[castling_data.row][castling_data.col] = piece_in_hand;
+    chessBoard[c_data.row][c_data.col] = piece_in_hand;
 
-    piece_in_hand = L.playerTurn == true ? 'W' : 'w';
-    chessBoard[L.y_sel][L.x_sel] = ' ';
+    piece_in_hand = m_data.playerTurn == true ? 'W' : 'w';
+    chessBoard[m_data.y_sel][m_data.x_sel] = ' ';
 
-    piece_in_hand = castling_data.shortCast == true ? chessBoard[castling_data.row][castling_data.col + 1] : chessBoard[castling_data.row][castling_data.col - 1];
+    piece_in_hand = c_data.shortCast == true ? chessBoard[c_data.row][c_data.col + 1] : chessBoard[c_data.row][c_data.col - 1];
 
-    L.playerTurn = L.playerTurn == true ? false : true;
+    m_data.playerTurn = m_data.playerTurn == true ? false : true;
 
-    if (isTargetUnderThreat(chessBoard, L, kingX, kingY))
+    if (isTargetUnderThreat(chessBoard, m_data, kingX, kingY))
     {
-        L.playerTurn = L.playerTurn == true ? false : true;
-        return L;
+        m_data.playerTurn = m_data.playerTurn == true ? false : true;
+        return m_data;
     }
 
-    return L;
+    return m_data;
 }
 
-logic executeRegularMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
+move executeRegularMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
                          int kingX, int kingY)
 {
-    char piece_in_hand = chessBoard[L.y_mov][L.x_mov];
+    char piece_in_hand = chessBoard[m_data.y_mov][m_data.x_mov];
 
-    chessBoard[L.y_mov][L.x_mov] = chessBoard[L.y_sel][L.x_sel];
-    chessBoard[L.y_sel][L.x_sel] = ' ';
+    chessBoard[m_data.y_mov][m_data.x_mov] = chessBoard[m_data.y_sel][m_data.x_sel];
+    chessBoard[m_data.y_sel][m_data.x_sel] = ' ';
 
-    L.playerTurn = L.playerTurn == true ? false : true;
+    m_data.playerTurn = m_data.playerTurn == true ? false : true;
 
-    if (isTargetUnderThreat(chessBoard, L, kingX, kingY))
+    if (isTargetUnderThreat(chessBoard, m_data, kingX, kingY))
     {
-        L.playerTurn = L.playerTurn == true ? false : true;
-        return L;
+        m_data.playerTurn = m_data.playerTurn == true ? false : true;
+        return m_data;
     }
 
-    return L;
+    return m_data;
 }
 
 int translateLetter(char letter)
@@ -318,16 +316,16 @@ int translateLetter(char letter)
     }
 }
 
-logic isPathBlocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
+move isPathBlocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 {
     int index = 0;
-    int x = L.x_sel, y = L.y_sel;
+    int x = m_data.x_sel, y = m_data.y_sel;
     int pathY[8], pathX[8];
 
-    if (chessBoard[L.y_sel][L.x_sel] == 'K' || chessBoard[L.y_sel][L.x_sel] == 'k')
+    if (chessBoard[m_data.y_sel][m_data.x_sel] == 'K' || chessBoard[m_data.y_sel][m_data.x_sel] == 'k')
     {
-        L.blocked = false;
-        return L;
+        m_data.blocked = false;
+        return m_data;
     }
 
     /*
@@ -335,26 +333,26 @@ logic isPathBlocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
      *  x, y thus become y, x when indexed. hence pathY must be iterated before pathX.
      */
 
-    while (x != L.x_mov || y != L.y_mov)
+    while (x != m_data.x_mov || y != m_data.y_mov)
     {
         pathY[index] = y;
         pathX[index] = x;
         ++index;
 
-        if (L.x_mov > x)
+        if (m_data.x_mov > x)
         {
             ++x;
         }
-        else if (L.x_mov < x)
+        else if (m_data.x_mov < x)
         {
             --x;
         }
 
-        if (L.y_mov > y)
+        if (m_data.y_mov > y)
         {
             ++y;
         }
-        else if (L.y_mov < y)
+        else if (m_data.y_mov < y)
         {
             --y;
         }
@@ -364,97 +362,97 @@ logic isPathBlocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
     {
         if (chessBoard[pathY[i]][pathX[i]] != ' ')
         {
-            L.blocked = true;
-            return L;
+            m_data.blocked = true;
+            return m_data;
         }
     }
 
-    L.blocked = false;
-    return L;
+    m_data.blocked = false;
+    return m_data;
 }
 
-bool gameRules(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
+bool gameRules(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 {
-    if ((L.playerTurn && isUpperOrLower(chessBoard[L.y_sel][L.x_sel])) ||
-        (!L.playerTurn && !isUpperOrLower(chessBoard[L.y_sel][L.x_sel])))
+    if ((m_data.playerTurn && isUpperOrLower(chessBoard[m_data.y_sel][m_data.x_sel])) ||
+        (!m_data.playerTurn && !isUpperOrLower(chessBoard[m_data.y_sel][m_data.x_sel])))
     {
-        if (chessBoard[L.y_sel][L.x_sel] == 'P' || chessBoard[L.y_sel][L.x_sel] == 'p')
+        if (chessBoard[m_data.y_sel][m_data.x_sel] == 'P' || chessBoard[m_data.y_sel][m_data.x_sel] == 'p')
         {
-            return pawn(chessBoard, L);
+            return pawn(chessBoard, m_data);
         }
-        else if (chessBoard[L.y_sel][L.x_sel] == 'R' || chessBoard[L.y_sel][L.x_sel] == 'r')
+        else if (chessBoard[m_data.y_sel][m_data.x_sel] == 'R' || chessBoard[m_data.y_sel][m_data.x_sel] == 'r')
         {
-            return rook(chessBoard, L);
+            return rook(chessBoard, m_data);
         }
-        else if (chessBoard[L.y_sel][L.x_sel] == 'K' || chessBoard[L.y_sel][L.x_sel] == 'k')
+        else if (chessBoard[m_data.y_sel][m_data.x_sel] == 'K' || chessBoard[m_data.y_sel][m_data.x_sel] == 'k')
         {
-            return knight(chessBoard, L);
+            return knight(chessBoard, m_data);
         }
-        else if (chessBoard[L.y_sel][L.x_sel] == 'B' || chessBoard[L.y_sel][L.x_sel] == 'b')
+        else if (chessBoard[m_data.y_sel][m_data.x_sel] == 'B' || chessBoard[m_data.y_sel][m_data.x_sel] == 'b')
         {
-            return bishop(chessBoard, L);
+            return bishop(chessBoard, m_data);
         }
-        else if (chessBoard[L.y_sel][L.x_sel] == 'Q' || chessBoard[L.y_sel][L.x_sel] == 'q')
+        else if (chessBoard[m_data.y_sel][m_data.x_sel] == 'Q' || chessBoard[m_data.y_sel][m_data.x_sel] == 'q')
         {
-            return queen(chessBoard, L);
+            return queen(chessBoard, m_data);
         }
-        else if (chessBoard[L.y_sel][L.x_sel] == 'W' || chessBoard[L.y_sel][L.x_sel] == 'w')
+        else if (chessBoard[m_data.y_sel][m_data.x_sel] == 'W' || chessBoard[m_data.y_sel][m_data.x_sel] == 'w')
         {
-            return king(chessBoard, L);
+            return king(chessBoard, m_data);
         }
     }
 
     return false;
 }
 
-bool pawn(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
+bool pawn(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 {
-    if (L.playerTurn)
+    if (m_data.playerTurn)
     {
-        if (L.y_sel == 1 && L.y_mov == L.y_sel + 2 && L.x_sel == L.x_mov)
+        if (m_data.y_sel == 1 && m_data.y_mov == m_data.y_sel + 2 && m_data.x_sel == m_data.x_mov)
         {
-            if (chessBoard[L.y_mov][L.x_mov] == ' ')
+            if (chessBoard[m_data.y_mov][m_data.x_mov] == ' ')
             {
                 return true;
             }
         }
-        else if (L.y_mov == L.y_sel + 1 && L.x_sel == L.x_mov)
+        else if (m_data.y_mov == m_data.y_sel + 1 && m_data.x_sel == m_data.x_mov)
         {
-            if (chessBoard[L.y_mov][L.x_mov] == ' ')
+            if (chessBoard[m_data.y_mov][m_data.x_mov] == ' ')
             {
                 return true;
             }
         }
-        else if (L.y_mov == L.y_sel + 1 && (L.x_mov == L.x_sel + 1 || L.x_mov == L.x_sel - 1) &&
-                 chessBoard[L.y_mov][L.x_mov] != ' ')
+        else if (m_data.y_mov == m_data.y_sel + 1 && (m_data.x_mov == m_data.x_sel + 1 || m_data.x_mov == m_data.x_sel - 1) &&
+                 chessBoard[m_data.y_mov][m_data.x_mov] != ' ')
         {
-            if (isUpperOrLower(chessBoard[L.y_mov][L.x_mov]) == false)
+            if (isUpperOrLower(chessBoard[m_data.y_mov][m_data.x_mov]) == false)
             {
                 return true;
             }
         }
     }
-    else if (!L.playerTurn)
+    else if (!m_data.playerTurn)
     {
 
-        if (L.y_sel == 6 && L.y_mov == L.y_sel - 2 && L.x_sel == L.x_mov)
+        if (m_data.y_sel == 6 && m_data.y_mov == m_data.y_sel - 2 && m_data.x_sel == m_data.x_mov)
         {
-            if (chessBoard[L.y_mov][L.x_mov] == ' ')
+            if (chessBoard[m_data.y_mov][m_data.x_mov] == ' ')
             {
                 return true;
             }
         }
-        else if (L.y_mov == L.y_sel - 1 && L.x_sel == L.x_mov)
+        else if (m_data.y_mov == m_data.y_sel - 1 && m_data.x_sel == m_data.x_mov)
         {
-            if (chessBoard[L.y_mov][L.x_mov] == ' ')
+            if (chessBoard[m_data.y_mov][m_data.x_mov] == ' ')
             {
                 return true;
             }
         }
-        else if (L.y_mov == L.y_sel - 1 && L.x_sel != L.x_mov && (L.x_mov == L.x_sel + 1 || L.x_mov == L.x_sel - 1) &&
-                 chessBoard[L.y_mov][L.x_mov] != ' ')
+        else if (m_data.y_mov == m_data.y_sel - 1 && m_data.x_sel != m_data.x_mov && (m_data.x_mov == m_data.x_sel + 1 || m_data.x_mov == m_data.x_sel - 1) &&
+                 chessBoard[m_data.y_mov][m_data.x_mov] != ' ')
         {
-            if (isUpperOrLower(chessBoard[L.y_mov][L.x_mov]))
+            if (isUpperOrLower(chessBoard[m_data.y_mov][m_data.x_mov]))
             {
                 return true;
             }
@@ -464,28 +462,28 @@ bool pawn(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
     return false;
 }
 
-bool rook(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
+bool rook(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 {
     bool moveIsOK = false;
 
-    if (L.x_sel > L.x_mov && L.y_sel == L.y_mov)
+    if (m_data.x_sel > m_data.x_mov && m_data.y_sel == m_data.y_mov)
     {
         moveIsOK = true;
     }
-    else if (L.x_sel < L.x_mov && L.y_sel == L.y_mov)
+    else if (m_data.x_sel < m_data.x_mov && m_data.y_sel == m_data.y_mov)
     {
         moveIsOK = true;
     }
-    else if (L.y_sel > L.y_mov && L.x_sel == L.x_mov)
+    else if (m_data.y_sel > m_data.y_mov && m_data.x_sel == m_data.x_mov)
     {
         moveIsOK = true;
     }
-    else if (L.y_sel < L.y_mov && L.x_sel == L.x_mov)
+    else if (m_data.y_sel < m_data.y_mov && m_data.x_sel == m_data.x_mov)
     {
         moveIsOK = true;
     }
 
-    if (targetStatus(chessBoard, L) && moveIsOK)
+    if (targetStatus(chessBoard, m_data) && moveIsOK)
     {
         return true;
     }
@@ -493,48 +491,48 @@ bool rook(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
     return false;
 }
 
-bool knight(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
+bool knight(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 {
-    if (L.y_mov == L.y_sel + 2 && (L.x_mov == L.x_sel + 1 || L.x_mov == L.x_sel - 1))
+    if (m_data.y_mov == m_data.y_sel + 2 && (m_data.x_mov == m_data.x_sel + 1 || m_data.x_mov == m_data.x_sel - 1))
     {
-        return targetStatus(chessBoard, L);
+        return targetStatus(chessBoard, m_data);
     }
-    else if (L.y_mov == L.y_sel - 2 && (L.x_mov == L.x_sel + 1 || L.x_mov == L.x_sel - 1))
+    else if (m_data.y_mov == m_data.y_sel - 2 && (m_data.x_mov == m_data.x_sel + 1 || m_data.x_mov == m_data.x_sel - 1))
     {
-        return targetStatus(chessBoard, L);
+        return targetStatus(chessBoard, m_data);
     }
-    else if (L.x_mov == L.x_sel + 2 && (L.y_mov == L.y_sel + 1 || L.y_mov == L.y_sel - 1))
+    else if (m_data.x_mov == m_data.x_sel + 2 && (m_data.y_mov == m_data.y_sel + 1 || m_data.y_mov == m_data.y_sel - 1))
     {
-        return targetStatus(chessBoard, L);
+        return targetStatus(chessBoard, m_data);
     }
-    else if (L.x_mov == L.x_sel - 2 && (L.y_mov == L.y_sel + 1 || L.y_mov == L.y_sel - 1))
+    else if (m_data.x_mov == m_data.x_sel - 2 && (m_data.y_mov == m_data.y_sel + 1 || m_data.y_mov == m_data.y_sel - 1))
     {
-        return targetStatus(chessBoard, L);
+        return targetStatus(chessBoard, m_data);
     }
 
     return false;
 }
 
-bool bishop(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
+bool bishop(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 {
     int differenceX = 0, differenceY = 0;
 
-    if (L.x_sel < L.x_mov)
+    if (m_data.x_sel < m_data.x_mov)
     {
-        differenceX = L.x_mov - L.x_sel;
+        differenceX = m_data.x_mov - m_data.x_sel;
     }
     else
     {
-        differenceX = L.x_sel - L.x_mov;
+        differenceX = m_data.x_sel - m_data.x_mov;
     }
 
-    if (L.y_sel < L.y_mov)
+    if (m_data.y_sel < m_data.y_mov)
     {
-        differenceY = L.y_mov - L.y_sel;
+        differenceY = m_data.y_mov - m_data.y_sel;
     }
     else
     {
-        differenceY = L.y_sel - L.y_mov;
+        differenceY = m_data.y_sel - m_data.y_mov;
     }
 
     if (differenceX != differenceY)
@@ -542,94 +540,94 @@ bool bishop(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
         return false;
     }
 
-    return targetStatus(chessBoard, L);
+    return targetStatus(chessBoard, m_data);
 }
 
-bool queen(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
+bool queen(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 {
     int differenceX = 0, differenceY = 0;
 
-    if (L.x_sel < L.x_mov)
+    if (m_data.x_sel < m_data.x_mov)
     {
-        differenceX = L.x_mov - L.x_sel;
+        differenceX = m_data.x_mov - m_data.x_sel;
     }
     else
     {
-        differenceX = L.x_sel - L.x_mov;
+        differenceX = m_data.x_sel - m_data.x_mov;
     }
 
-    if (L.y_sel < L.y_mov)
+    if (m_data.y_sel < m_data.y_mov)
     {
-        differenceY = L.y_mov - L.y_sel;
+        differenceY = m_data.y_mov - m_data.y_sel;
     }
     else
     {
-        differenceY = L.y_sel - L.y_mov;
+        differenceY = m_data.y_sel - m_data.y_mov;
     }
 
     if (differenceX == differenceY)
     {
-        return targetStatus(chessBoard, L);
+        return targetStatus(chessBoard, m_data);
     }
 
-    if (L.x_sel > L.x_mov && L.y_sel == L.y_mov)
+    if (m_data.x_sel > m_data.x_mov && m_data.y_sel == m_data.y_mov)
     {
-        return targetStatus(chessBoard, L);
+        return targetStatus(chessBoard, m_data);
     }
-    else if (L.x_sel < L.x_mov && L.y_sel == L.y_mov)
+    else if (m_data.x_sel < m_data.x_mov && m_data.y_sel == m_data.y_mov)
     {
-        return targetStatus(chessBoard, L);
+        return targetStatus(chessBoard, m_data);
     }
-    else if (L.y_sel > L.y_mov && L.x_sel == L.x_mov)
+    else if (m_data.y_sel > m_data.y_mov && m_data.x_sel == m_data.x_mov)
     {
-        return targetStatus(chessBoard, L);
+        return targetStatus(chessBoard, m_data);
     }
-    else if (L.y_sel < L.y_mov && L.x_sel == L.x_mov)
+    else if (m_data.y_sel < m_data.y_mov && m_data.x_sel == m_data.x_mov)
     {
-        return targetStatus(chessBoard, L);
+        return targetStatus(chessBoard, m_data);
     }
 
     return false;
 }
 
-bool king(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
+bool king(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 {
     bool moveIsOK = false;
 
-    if (L.y_mov == L.y_sel - 1 && L.x_mov == L.x_sel)
+    if (m_data.y_mov == m_data.y_sel - 1 && m_data.x_mov == m_data.x_sel)
     {
         moveIsOK = true;
     }
-    else if (L.y_mov == L.y_sel - 1 && L.x_mov == L.x_sel + 1)
+    else if (m_data.y_mov == m_data.y_sel - 1 && m_data.x_mov == m_data.x_sel + 1)
     {
         moveIsOK = true;
     }
-    else if (L.y_mov == L.y_sel && L.x_mov == L.x_sel + 1)
+    else if (m_data.y_mov == m_data.y_sel && m_data.x_mov == m_data.x_sel + 1)
     {
         moveIsOK = true;
     }
-    else if (L.y_mov == L.y_sel + 1 && L.x_mov == L.x_sel + 1)
+    else if (m_data.y_mov == m_data.y_sel + 1 && m_data.x_mov == m_data.x_sel + 1)
     {
         moveIsOK = true;
     }
-    else if (L.y_mov == L.y_sel + 1 && L.x_mov == L.x_sel)
+    else if (m_data.y_mov == m_data.y_sel + 1 && m_data.x_mov == m_data.x_sel)
     {
         moveIsOK = true;
     }
-    else if (L.y_mov == L.y_sel + 1 && L.x_mov == L.x_sel - 1)
+    else if (m_data.y_mov == m_data.y_sel + 1 && m_data.x_mov == m_data.x_sel - 1)
     {
         moveIsOK = true;
     }
-    else if (L.y_mov == L.y_sel && L.x_mov == L.x_sel - 1)
+    else if (m_data.y_mov == m_data.y_sel && m_data.x_mov == m_data.x_sel - 1)
     {
         moveIsOK = true;
     }
-    else if (L.y_mov == L.y_sel - 1 && L.x_mov == L.x_sel - 1)
+    else if (m_data.y_mov == m_data.y_sel - 1 && m_data.x_mov == m_data.x_sel - 1)
     {
         moveIsOK = true;
     }
 
-    if (targetStatus(chessBoard, L) && moveIsOK)
+    if (targetStatus(chessBoard, m_data) && moveIsOK)
     {
         return true;
     }
@@ -637,25 +635,25 @@ bool king(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
     return false;
 }
 
-bool isTargetUnderThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
+bool isTargetUnderThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
                          int x, int y)
 {
-    L.x_mov = x, L.y_mov = y;
-    L.blocked = true;
+    m_data.x_mov = x, m_data.y_mov = y;
+    m_data.blocked = true;
 
     for (int i = 0; i < SIZE_EIGHT; ++i)
     {
         for (int j = 0; j < SIZE_EIGHT; ++j)
         {
-            L.y_sel = i, L.x_sel = j;
+            m_data.y_sel = i, m_data.x_sel = j;
 
             if (chessBoard[i][j] != ' ')
             {
-                if (gameRules(chessBoard, L) == true)
+                if (gameRules(chessBoard, m_data) == true)
                 {
-                    L = isPathBlocked(chessBoard, L);
+                    m_data = isPathBlocked(chessBoard, m_data);
 
-                    if (L.blocked == false)
+                    if (m_data.blocked == false)
                     {
                         return true;
                     }
@@ -667,18 +665,18 @@ bool isTargetUnderThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
     return false;
 }
 
-bool targetStatus(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
+bool targetStatus(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 {
-    if (L.playerTurn == true)
+    if (m_data.playerTurn == true)
     {
-        if (chessBoard[L.y_mov][L.x_mov] == ' ' || isUpperOrLower(chessBoard[L.y_mov][L.x_mov]) == false)
+        if (chessBoard[m_data.y_mov][m_data.x_mov] == ' ' || isUpperOrLower(chessBoard[m_data.y_mov][m_data.x_mov]) == false)
         {
             return true;
         }
     }
-    else if (L.playerTurn == false)
+    else if (m_data.playerTurn == false)
     {
-        if (chessBoard[L.y_mov][L.x_mov] == ' ' || isUpperOrLower(chessBoard[L.y_mov][L.x_mov]) == true)
+        if (chessBoard[m_data.y_mov][m_data.x_mov] == ' ' || isUpperOrLower(chessBoard[m_data.y_mov][m_data.x_mov]) == true)
         {
             return true;
         }
@@ -704,27 +702,27 @@ bool isUpperOrLower(char letter)
     return result;
 }
 
-bool checkmate(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L)
+bool checkmate(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 {
     int x = 0, y = 0;
 
-    if (!findTheKing(chessBoard, &x, &y, L.playerTurn))
+    if (!findTheKing(chessBoard, &x, &y, m_data.playerTurn))
     {
         puts("checkmate: Error Couldn't find the king.");
         exit(EXIT_FAILURE);
     }
 
-    if (!isKingInCheck(chessBoard, L, x, y))
+    if (!isKingInCheck(chessBoard, m_data, x, y))
     {
         return false;
     }
 
-    if (!isKingLocked(chessBoard, L, x, y))
+    if (!isKingLocked(chessBoard, m_data, x, y))
     {
         return false;
     }
 
-    if (!isThreatRemoveable(chessBoard, L, x, y))
+    if (!isThreatRemoveable(chessBoard, m_data, x, y))
     {
         return false;
     }
@@ -754,13 +752,13 @@ bool findTheKing(char chessBoard[SIZE_EIGHT][SIZE_EIGHT],
     return false;
 }
 
-bool isKingInCheck(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
+bool isKingInCheck(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
                    int kingX, int kingY)
 {
-    return isTargetUnderThreat(chessBoard, L, kingX, kingY);
+    return isTargetUnderThreat(chessBoard, m_data, kingX, kingY);
 }
 
-bool isKingLocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
+bool isKingLocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
                   int kingX, int kingY)
 {
     for (int i = 0; i < SIZE_EIGHT; ++i)
@@ -793,12 +791,12 @@ bool isKingLocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
             break;
         }
 
-        if (L.playerTurn == true)
+        if (m_data.playerTurn == true)
         {
             if ((chessBoard[kingY][kingX] == ' ' || !isUpperOrLower(chessBoard[kingY][kingX])) &&
                 kingY >= 0 && kingY <= 7 && kingX >= 0 && kingX <= 7)
             {
-                if (!isTargetUnderThreat(chessBoard, L, kingX, kingY))
+                if (!isTargetUnderThreat(chessBoard, m_data, kingX, kingY))
                 {
                     return false;
                 }
@@ -809,7 +807,7 @@ bool isKingLocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
             if ((chessBoard[kingY][kingX] == ' ' || isUpperOrLower(chessBoard[kingY][kingX])) &&
                 kingY >= 0 && kingY <= 7 && kingX >= 0 && kingX <= 7)
             {
-                if (!isTargetUnderThreat(chessBoard, L, kingX, kingY))
+                if (!isTargetUnderThreat(chessBoard, m_data, kingX, kingY))
                 {
                     return false;
                 }
@@ -820,45 +818,45 @@ bool isKingLocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
     return true;
 }
 
-bool isThreatRemoveable(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
+bool isThreatRemoveable(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
                         int kingX, int kingY)
 {
     int threatX = 0, threatY = 0;
     int pathY[SIZE_EIGHT], pathX[SIZE_EIGHT];
     int pathSize = 0;
 
-    findThreat(chessBoard, L.playerTurn, kingX, kingY,
+    findThreat(chessBoard, m_data.playerTurn, kingX, kingY,
                &threatX, &threatY);
 
-    L.x_sel = threatX, L.y_sel = threatY;
+    m_data.x_sel = threatX, m_data.y_sel = threatY;
 
-    pathSize = getPath(chessBoard, L, pathX, pathY);
+    pathSize = getPath(chessBoard, m_data, pathX, pathY);
 
-    return removalofThreat(chessBoard, L,
+    return removalofThreat(chessBoard, m_data,
                            pathX, pathY, pathSize);
 }
 
 void findThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], bool playerTurn, int kingX, int kingY,
                 int *threatX, int *threatY)
 {
-    logic L;
+    move m_data;
 
-    L.blocked = false;
-    L.playerTurn = playerTurn == true ? true : false;
-    L.x_mov = kingX;
-    L.y_mov = kingY;
+    m_data.blocked = false;
+    m_data.playerTurn = playerTurn == true ? true : false;
+    m_data.x_mov = kingX;
+    m_data.y_mov = kingY;
 
     for (int i = 0; i < SIZE_EIGHT; ++i)
     {
         for (int j = 0; j < SIZE_EIGHT; ++j)
         {
-            L.x_sel = j;
-            L.y_sel = i;
+            m_data.x_sel = j;
+            m_data.y_sel = i;
 
-            if (gameRules(chessBoard, L))
+            if (gameRules(chessBoard, m_data))
             {
-                L = isPathBlocked(chessBoard, L);
-                if (!L.blocked)
+                m_data = isPathBlocked(chessBoard, m_data);
+                if (!m_data.blocked)
                 {
                     *threatX = j;
                     *threatX = i;
@@ -869,13 +867,13 @@ void findThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], bool playerTurn, int ki
     }
 }
 
-int getPath(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
+int getPath(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
             int pathX[SIZE_EIGHT], int pathY[SIZE_EIGHT])
 {
     int pathSize = 0;
-    int x = L.x_sel, y = L.y_sel;
+    int x = m_data.x_sel, y = m_data.y_sel;
 
-    if (chessBoard[L.y_sel][L.x_sel] == 'K' || chessBoard[L.y_sel][L.x_sel] == 'k')
+    if (chessBoard[m_data.y_sel][m_data.x_sel] == 'K' || chessBoard[m_data.y_sel][m_data.x_sel] == 'k')
     {
         return pathSize;
     }
@@ -885,26 +883,26 @@ int getPath(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
      *  x, y thus become y, x when indexed. hence pathY must be iterated before pathX.
      */
 
-    while (x != L.x_mov || y != L.y_mov)
+    while (x != m_data.x_mov || y != m_data.y_mov)
     {
         pathY[pathSize] = y;
         pathX[pathSize] = x;
         ++pathSize;
 
-        if (L.x_mov > x)
+        if (m_data.x_mov > x)
         {
             ++x;
         }
-        else if (L.x_mov < x)
+        else if (m_data.x_mov < x)
         {
             --x;
         }
 
-        if (L.y_mov > y)
+        if (m_data.y_mov > y)
         {
             ++y;
         }
-        else if (L.y_mov < y)
+        else if (m_data.y_mov < y)
         {
             --y;
         }
@@ -913,17 +911,17 @@ int getPath(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
     return pathSize;
 }
 
-bool removalofThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
+bool removalofThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
                      int pathX[SIZE_EIGHT], int pathY[SIZE_EIGHT], int pathSize)
 {
     for (int i = 0; i < SIZE_EIGHT; ++i)
     {
         for (int j = 0; j < SIZE_EIGHT; ++j)
         {
-            if (isUpperOrLower(chessBoard[i][j]) == L.playerTurn)
+            if (isUpperOrLower(chessBoard[i][j]) == m_data.playerTurn)
             {
                 tryMoveAtPath(chessBoard, pathX, pathY,
-                              pathSize, i, j, L);
+                              pathSize, i, j, m_data);
             }
         }
     }
@@ -931,18 +929,18 @@ bool removalofThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
 }
 
 bool tryMoveAtPath(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], int pathX[SIZE_EIGHT], int pathY[SIZE_EIGHT],
-                   int pathSize, int x, int y, logic L)
+                   int pathSize, int x, int y, move m_data)
 {
-    L.playerTurn = L.playerTurn == true ? true : false;
-    L.x_sel = x;
-    L.y_sel = y;
+    m_data.playerTurn = m_data.playerTurn == true ? true : false;
+    m_data.x_sel = x;
+    m_data.y_sel = y;
 
     for (int i = 0; i < pathSize; ++i)
     {
-        L.x_mov = pathX[i];
-        L.y_mov = pathY[i];
+        m_data.x_mov = pathX[i];
+        m_data.y_mov = pathY[i];
 
-        if (gameRules(chessBoard, L))
+        if (gameRules(chessBoard, m_data))
         {
             return true;
         }
