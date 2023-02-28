@@ -6,18 +6,17 @@
 #ifndef CHESS_STRUCTS_H
 #define CHESS_STRUCTS_H
 
-typedef struct logic
+typedef struct move
 {
     int x_sel, y_sel;
     int x_mov, y_mov;
-    bool is_running, playerTurn, blocked;
-} logic;
+    bool playerTurn, blocked;
+} move;
 
 typedef struct castling
 {
     int row, col;
     bool shortCast, longCast;
-    bool movedP1, movedP2;
 } castling;
 
 #endif // CHESS_STRUCTS_H

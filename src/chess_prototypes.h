@@ -8,79 +8,79 @@
 #include "chess_macros.h"
 #include "chess_structs.h"
 
-logic initGame(void);
+move initGame(void);
 
 castling initCastling(void);
 
 void runGame(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], 
-             logic L, castling castling_data);
+             move m_data, castling c_data);
 
 void drawConsole(char chessBoard[SIZE_EIGHT][SIZE_EIGHT]);
 
-logic getUserInput(char[SIZE_EIGHT][SIZE_EIGHT], logic L);
+move getUserInput(char[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
-logic isPathBlocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L); 
+move isPathBlocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data); 
 
-castling castlingControl(char[SIZE_EIGHT][SIZE_EIGHT], logic L, castling castling_data);
+castling castlingControl(char[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data);
 
-logic executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], 
-                  logic L, castling castling_data);
+move executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], 
+                  move m_data, castling c_data);
 
-logic executeCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L, 
-                          int kingX, int kingY, castling castling_data);
+move executeCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, 
+                          int kingX, int kingY, castling c_data);
 
-logic executeRegularMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L, int kingX, int kingY);
+move executeRegularMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, int kingX, int kingY);
 
 int translateLetter(char letter);
 
 bool isUpperOrLower(char letter);
 
-bool isTargetUnderThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L, int targetX, int targetY);
+bool isTargetUnderThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, int targetX, int targetY);
 
-bool gameRules(char[SIZE_EIGHT][SIZE_EIGHT], logic L);
+bool gameRules(char[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
-bool pawn(char[SIZE_EIGHT][SIZE_EIGHT], logic L);
+bool pawn(char[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
-bool rook(char[SIZE_EIGHT][SIZE_EIGHT], logic L);
+bool rook(char[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
-bool knight(char[SIZE_EIGHT][SIZE_EIGHT], logic L);
+bool knight(char[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
-bool bishop(char[SIZE_EIGHT][SIZE_EIGHT], logic L);
+bool bishop(char[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
-bool queen(char[SIZE_EIGHT][SIZE_EIGHT], logic L);
+bool queen(char[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
-bool king(char[SIZE_EIGHT][SIZE_EIGHT], logic L);
+bool king(char[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
-bool targetStatus(char[SIZE_EIGHT][SIZE_EIGHT], logic L);
+bool targetStatus(char[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
-bool checkmate(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L);
+bool checkmate(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
 bool findTheKing(char chessBoard[SIZE_EIGHT][SIZE_EIGHT],
                  int *kingX, int *kingY, bool playerTurn); 
 
-bool isKingInCheck(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
+bool isKingInCheck(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
                    int kingX, int kingY);
 
-bool isKingLocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
+bool isKingLocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
                   int kingX, int kingY);
 
-bool isThreatRemoveable(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
+bool isThreatRemoveable(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
                         int kingX, int kingY);
 
 void findThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], bool playerTurn, int kingX, int kingY,
                 int *foundThreatX, int *foundThreatY); 
 
-bool removalofThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
+bool removalofThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
                      int pathX[SIZE_EIGHT], int pathY[SIZE_EIGHT], int pathSize);
 
-int getPath(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
+int getPath(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
             int pathX[SIZE_EIGHT], int pathY[SIZE_EIGHT]);
 
-bool removalofThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], logic L,
+bool removalofThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
                      int pathX[SIZE_EIGHT], int pathY[SIZE_EIGHT], int pathSize);
 
 bool tryMoveAtPath(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], int pathX[SIZE_EIGHT], int pathY[SIZE_EIGHT],
-                   int pathSize, int x, int y, logic L);
+                   int pathSize, int x, int y, move m_data);
 
 
 #endif // CHESS_PROTOTYPES_H
