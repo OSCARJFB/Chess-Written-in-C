@@ -72,8 +72,8 @@ void runGame(char chessBoard[SIZE_EIGHT][SIZE_EIGHT],
         drawConsole(chessBoard);
         m_data = getUserInput(chessBoard, m_data);
         m_data = isPathBlocked(chessBoard, m_data);
-        c_data = castlingControl(chessBoard, m_data, c_data);
-        m_data = executeMove(chessBoard, m_data, c_data);
+        m_data = executeMove(chessBoard, m_data);
+        m_data.playerTurn = castlingController(chessBoard, m_data, c_data);
         if (checkmate(chessBoard, m_data))
         {
             break;
@@ -179,7 +179,7 @@ move getUserInput(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return m_data;
 }
 
-castling castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data)
+bool castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data)
 {
     c_data = isCastlingOk(chessBoard, m_data, c_data);
     c_data.p1_canCast = c_data.p2_canCast = false; 
@@ -187,28 +187,26 @@ castling castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data
     if (chessBoard[m_data.y_sel][m_data.x_sel] != 'W' &&
         chessBoard[m_data.y_sel][m_data.x_sel] != 'w')
     {
-        return c_data;
+        return m_data.playerTurn;
     }
 
-    if (!isCastlingMove(chessBoard[SIZE_EIGHT][SIZE_EIGHT], m_data))
+    if (!isCastlingMove(chessBoard[SIZE_EIGHT][SIZE_EIGHT], m_data, c_data))
     {
-        return c_data;
+        return m_data.playerTurn;
     }
 
     if (!isCastlingPathOk(chessBoard[SIZE_EIGHT][SIZE_EIGHT], m_data))
     {
-        return c_data;
+        return m_data.playerTurn;
     }
-
-    m_data.playerTurn = m_data.playerTurn == true ? false : true;
-    if (isTargetUnderThreat(chessBoard, m_data, kingX, kingY))
+    
+    if(!tryCastlingMove(chessBoard[SIZE_EIGHT][SIZE_EIGHT], m_data, c_data))
     {
-        return c_data;
+        return m_data.playerTurn;
     }
 
-    c_data = setCanCastFlag(); 
 
-    return c_data;
+    return m_data.playerTurn == true ? false : true;
 }
 
 castling isCastlingOk(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data)
@@ -252,10 +250,36 @@ castling isCastlingOk(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, cast
     return c_data;
 }
 
-bool isCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+bool isCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data)
 {
     const int shortC = 7, longC = 0;
     int column = m_data.playerTurn == true ? 0 : 7;
+
+    // Make sure castling is allowed by checking if any of the required pieces have been moved. 
+    if(m_data.playerTurn)
+    {
+        if(m_data.x_mov == shortC && !c_data.p1_shortCast)
+        {
+            return false; 
+        } 
+
+        if(m_data.x_mov == longC && !c_data.p1_longCast)
+        {
+            return false; 
+        } 
+    }
+    else
+    {
+        if(m_data.x_mov == shortC && !c_data.p2_shortCast)
+        {
+            return false; 
+        } 
+
+        if(m_data.x_mov == longC && !c_data.p2_longCast)
+        {
+            return false; 
+        } 
+    }
 
     if (m_data.x_mov == shortC && m_data.y_mov == column)
     {
@@ -291,60 +315,58 @@ bool isCastlingPathOk(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return false;
 }
 
-castling setCanCastFlag(move m_data, castling c_data)
-{
-    if(m_data.playerTurn)
-    {
-        c_data.p1_canCast = true;
-    }
-    else
-    {
-        c_data.p2_canCast = true;
-    }
-
-    return c_data;
-}
-
-move executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT],
-                 move m_data, castling c_data)
-{
-    if (c_data.p1_canCast || c_data.p2_canCast)
-    {
-        m_data = executeCastlingMove(chessBoard, m_data,
-                                     kingX, kingY, c_data);
-    }
-
-    if (m_data.blocked == false || chessBoard[m_data.y_sel][m_data.x_sel] == 'k' || chessBoard[m_data.y_sel][m_data.x_sel] == 'K')
-    {
-        if (gameRules(chessBoard, m_data))
-        {
-            m_data = executeRegularMove(chessBoard, m_data, kingX, kingY);
-        }
-    }
-
-    return m_data;
-}
-
-move executeCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data)
+bool tryCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data)
 {
     const int shortC = 7, longC = 0;
-    int column = m_data.playerTurn == true ? 0 : 7; 
+    int column = m_data.playerTurn == true ? 0 : 7;
 
+    char king = m_data.playerTurn == true ? 'W' : 'w';
+    char rook = m_data.playerTurn == true ? 'R' : 'r';
+
+    // Execute castling move. 
     if(m_data.x_mov == shortC)
     {
-
+        chessBoard[column][shortC] = ' ';
+        chessBoard[column][shortC - 2] = rook;
+        chessBoard[m_data.y_sel][m_data.x_sel] = ' ';
+        chessBoard[column][shortC - 1] = king;
     }
-    else if(m_data.x_mov == longC)
+    if(m_data.x_mov == longC)
     {
-
+        chessBoard[column][longC] = ' ';
+        chessBoard[column][longC + 3] = rook;
+        chessBoard[m_data.y_sel][m_data.x_sel] = ' ';
+        chessBoard[column][longC + 2] = king;
     }
 
-    return m_data;
+    // If castling result in check the move must be reseted. 
+    m_data.playerTurn = m_data.playerTurn == true ? false : true;
+    if (isTargetUnderThreat(chessBoard, m_data, m_data.x_sel, m_data.y_sel))
+    {
+        if(m_data.x_mov == shortC)
+        {
+            chessBoard[column][shortC] = rook;
+            chessBoard[column][shortC - 2] = ' ';
+            chessBoard[m_data.y_sel][m_data.x_sel] = king;
+            chessBoard[column][shortC - 1] = ' ';
+        }
+        if(m_data.x_mov == longC)
+        {
+            chessBoard[column][longC] = rook;
+            chessBoard[column][longC + 3] = ' ';
+            chessBoard[m_data.y_sel][m_data.x_sel] = king;
+            chessBoard[column][longC + 2] = ' ';
+        }
+
+        return false;
+    }
+
+    return true; 
 }
 
-move executeRegularMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+move executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 {
-    int kingX = 0, int kingY = 0;
+    int kingX = 0, kingY = 0;
     char target = chessBoard[m_data.y_mov][m_data.x_mov];
 
     chessBoard[m_data.y_mov][m_data.x_mov] = chessBoard[m_data.y_sel][m_data.x_sel];
@@ -424,7 +446,7 @@ move isPathBlocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
         return m_data;
     }
 
-    /*
+    /**
      *  Important 2d arrays are reversed from the regular conception of x and y in algebra.
      *  x, y thus become y, x when indexed. hence pathY must be iterated before pathX.
      */
