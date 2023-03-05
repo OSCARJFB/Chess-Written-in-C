@@ -21,7 +21,7 @@ move getUserInput(char[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
 move isPathBlocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data); 
 
-bool castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data);
+move castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data);
 
 castling isCastlingOk(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data);
 
@@ -30,6 +30,8 @@ bool isCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castli
 bool isCastlingPathOk(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
 bool castlingResultInCheck(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data);
+
+bool tryCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data);
 
 move executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
