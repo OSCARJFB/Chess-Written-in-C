@@ -15,8 +15,9 @@ typedef struct move
 
 typedef struct castling
 {
-    int row, col;
-    bool shortCast, longCast;
+    bool p1_canCast, p2_canCast;
+    bool p1_shortCast, p1_longCast;
+    bool p2_shortCast, p2_longCast;
 } castling;
 
 #endif // CHESS_STRUCTS_H
