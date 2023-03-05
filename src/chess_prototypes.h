@@ -31,6 +31,8 @@ bool isCastlingPathOk(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
 bool castlingResultInCheck(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
+bool tryCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data);
+
 move executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
 int translateLetter(char letter);

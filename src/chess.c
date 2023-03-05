@@ -190,17 +190,17 @@ bool castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, ca
         return m_data.playerTurn;
     }
 
-    if (!isCastlingMove(chessBoard[SIZE_EIGHT][SIZE_EIGHT], m_data, c_data))
+    if (!isCastlingMove(chessBoard, m_data, c_data))
     {
         return m_data.playerTurn;
     }
 
-    if (!isCastlingPathOk(chessBoard[SIZE_EIGHT][SIZE_EIGHT], m_data))
+    if (!isCastlingPathOk(chessBoard, m_data))
     {
         return m_data.playerTurn;
     }
     
-    if(!tryCastlingMove(chessBoard[SIZE_EIGHT][SIZE_EIGHT], m_data, c_data))
+    if(!tryCastlingMove(chessBoard, m_data, c_data))
     {
         return m_data.playerTurn;
     }
