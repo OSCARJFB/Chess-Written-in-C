@@ -41,6 +41,7 @@ int main(void)
 move initGame(void)
 {
     move m_data;
+
     m_data.x_sel = m_data.y_sel = -1;
     m_data.x_mov = m_data.y_mov = -1;
     m_data.playerTurn = true;
@@ -51,12 +52,20 @@ move initGame(void)
 castling initCastling(void)
 {
     castling c_data;
-    c_data.shortCast = c_data.longCast = false; 
+
+    c_data.p1_canCast = false;
+    c_data.p2_canCast = false;
+
+    c_data.p1_shortCast = true;
+    c_data.p1_longCast = true;
+    c_data.p2_shortCast = true;
+    c_data.p2_longCast = true;
+
     return c_data;
 }
 
-void runGame(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], 
-            move m_data, castling c_data)
+void runGame(char chessBoard[SIZE_EIGHT][SIZE_EIGHT],
+             move m_data, castling c_data)
 {
     while (true)
     {
@@ -78,7 +87,7 @@ void drawConsole(char chessBoard[SIZE_EIGHT][SIZE_EIGHT])
 {
     int board_numbers = 1;
 
-    system("clear");
+    system(SYSTEM);
 
     for (int i = 0; i < SIZE_EIGHT; ++i)
     {
@@ -163,56 +172,147 @@ move getUserInput(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
             }
             break;
         }
-        sizeOfArray++;
+        ++sizeOfArray;
     }
 
     free(userInput);
     return m_data;
 }
 
-castling castlingControl(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data)
+castling castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data)
 {
-    const int shortC = 7, longC = 0;
+    c_data = isCastlingOk(chessBoard, m_data, c_data);
+    c_data.p1_canCast = c_data.p2_canCast = false; 
 
-    if(chessBoard[m_data.y_sel][m_data.x_sel] != 'W' && chessBoard[m_data.y_sel][m_data.x_sel] != 'w')
+    if (chessBoard[m_data.y_sel][m_data.x_sel] != 'W' &&
+        chessBoard[m_data.y_sel][m_data.x_sel] != 'w')
     {
-        return c_data; 
-    }
-
-    c_data.row = m_data.playerTurn == true ? 0 : 7;
-
-    if (m_data.x_mov == shortC && m_data.y_mov == c_data.row)
-    {
-        c_data.col = 5;
-        c_data.shortCast = true;
         return c_data;
     }
-    else if (m_data.x_mov == longC && m_data.y_mov == c_data.row)
+
+    if (!isCastlingMove(chessBoard[SIZE_EIGHT][SIZE_EIGHT], m_data))
     {
-        c_data.col = 3;
-        c_data.longCast = true;
         return c_data;
     }
-    
+
+    if (!isCastlingPathOk(chessBoard[SIZE_EIGHT][SIZE_EIGHT], m_data))
+    {
+        return c_data;
+    }
+
+    m_data.playerTurn = m_data.playerTurn == true ? false : true;
+    if (isTargetUnderThreat(chessBoard, m_data, kingX, kingY))
+    {
+        return c_data;
+    }
+
+    c_data = setCanCastFlag(); 
+
     return c_data;
 }
 
-move executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], 
-                  move m_data, castling c_data)
+castling isCastlingOk(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data)
 {
-    int kingX = 0, kingY = 0;
+    // Player 1, set castling to false if a move has been made.
 
-    if (!findTheKing(chessBoard, &kingX, &kingX, m_data.playerTurn))
+    if (chessBoard[0][4] != 'W')
     {
-        puts("checkmate: Error Couldn't find the king.");
-        exit(EXIT_FAILURE);
+        c_data.p1_shortCast = false;
+        c_data.p1_longCast = false;
     }
 
-    //if (c_data.shortCast || c_data.longCast)
-    //{
-    //    m_data = executeCastlingMove(chessBoard, m_data, 
-    //                            kingX, kingY, c_data);
-    //}
+    if (chessBoard[0][7] != 'R')
+    {
+        c_data.p1_shortCast = false;
+    }
+
+    if (chessBoard[0][0] != 'R')
+    {
+        c_data.p1_longCast = true;
+    }
+
+    // Player 2, set castling to false if a move has been made.
+
+    if (chessBoard[0][4] != 'w')
+    {
+        c_data.p2_shortCast = false;
+        c_data.p2_longCast = false;
+    }
+
+    if (chessBoard[0][7] != 'r')
+    {
+        c_data.p2_shortCast = false;
+    }
+
+    if (chessBoard[0][0] != 'r')
+    {
+        c_data.p2_longCast = true;
+    }
+
+    return c_data;
+}
+
+bool isCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+{
+    const int shortC = 7, longC = 0;
+    int column = m_data.playerTurn == true ? 0 : 7;
+
+    if (m_data.x_mov == shortC && m_data.y_mov == column)
+    {
+        return true;
+    }
+    else if (m_data.x_mov == longC && m_data.y_mov == column)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+bool isCastlingPathOk(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+{
+    const int shortC = 7, longC = 0;
+
+    if (chessBoard[m_data.y_sel][m_data.x_sel + 1] == ' ' &&
+        chessBoard[m_data.y_sel][m_data.x_sel + 2] == ' ' &&
+        m_data.x_mov == shortC)
+    {
+        return true;
+    }
+
+    if (chessBoard[m_data.y_sel][m_data.x_sel - 1] == ' ' &&
+        chessBoard[m_data.y_sel][m_data.x_sel - 2] == ' ' &&
+        chessBoard[m_data.y_sel][m_data.x_sel - 3] == ' ' &&
+        m_data.x_mov == longC)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+castling setCanCastFlag(move m_data, castling c_data)
+{
+    if(m_data.playerTurn)
+    {
+        c_data.p1_canCast = true;
+    }
+    else
+    {
+        c_data.p2_canCast = true;
+    }
+
+    return c_data;
+}
+
+move executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT],
+                 move m_data, castling c_data)
+{
+    if (c_data.p1_canCast || c_data.p2_canCast)
+    {
+        m_data = executeCastlingMove(chessBoard, m_data,
+                                     kingX, kingY, c_data);
+    }
 
     if (m_data.blocked == false || chessBoard[m_data.y_sel][m_data.x_sel] == 'k' || chessBoard[m_data.y_sel][m_data.x_sel] == 'K')
     {
@@ -225,51 +325,47 @@ move executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT],
     return m_data;
 }
 
-move executeCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, 
-                          int kingX, int kingY, castling c_data)
+move executeCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data)
 {
-    char piece_in_hand = m_data.playerTurn == true ? 'R' : 'r';
+    const int shortC = 7, longC = 0;
+    int column = m_data.playerTurn == true ? 0 : 7; 
 
-    if (c_data.shortCast)
+    if(m_data.x_mov == shortC)
     {
-        chessBoard[c_data.row][7] = ' ';
+
     }
-    else
+    else if(m_data.x_mov == longC)
     {
-        chessBoard[c_data.row][0] = ' ';
-    }
 
-    chessBoard[c_data.row][c_data.col] = piece_in_hand;
-
-    piece_in_hand = m_data.playerTurn == true ? 'W' : 'w';
-    chessBoard[m_data.y_sel][m_data.x_sel] = ' ';
-
-    piece_in_hand = c_data.shortCast == true ? chessBoard[c_data.row][c_data.col + 1] : chessBoard[c_data.row][c_data.col - 1];
-
-    m_data.playerTurn = m_data.playerTurn == true ? false : true;
-
-    if (isTargetUnderThreat(chessBoard, m_data, kingX, kingY))
-    {
-        m_data.playerTurn = m_data.playerTurn == true ? false : true;
-        return m_data;
     }
 
     return m_data;
 }
 
-move executeRegularMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
-                         int kingX, int kingY)
+move executeRegularMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 {
-    char piece_in_hand = chessBoard[m_data.y_mov][m_data.x_mov];
+    int kingX = 0, int kingY = 0;
+    char target = chessBoard[m_data.y_mov][m_data.x_mov];
 
     chessBoard[m_data.y_mov][m_data.x_mov] = chessBoard[m_data.y_sel][m_data.x_sel];
     chessBoard[m_data.y_sel][m_data.x_sel] = ' ';
+
+    if (!findTheKing(chessBoard, &kingX, &kingX, m_data.playerTurn))
+    {
+        puts("checkmate: Error Couldn't find the king.");
+        exit(EXIT_FAILURE);
+    }
 
     m_data.playerTurn = m_data.playerTurn == true ? false : true;
 
     if (isTargetUnderThreat(chessBoard, m_data, kingX, kingY))
     {
+        // Reverse the move, since it resulted in the king being under threat. 
         m_data.playerTurn = m_data.playerTurn == true ? false : true;
+
+        chessBoard[m_data.y_sel][m_data.x_sel] = chessBoard[m_data.y_mov][m_data.x_mov];
+        chessBoard[m_data.y_mov][m_data.x_mov] = target; 
+
         return m_data;
     }
 
@@ -925,6 +1021,7 @@ bool removalofThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
             }
         }
     }
+
     return true;
 }
 
