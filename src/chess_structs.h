@@ -15,7 +15,6 @@ typedef struct move
 
 typedef struct castling
 {
-    bool p1_canCast, p2_canCast;
     bool p1_shortCast, p1_longCast;
     bool p2_shortCast, p2_longCast;
 } castling;

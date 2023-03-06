@@ -30,7 +30,7 @@ int main(void)
             'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p',
             'r', 'k', 'b', 'q', 'w', 'b', 'k', 'r'};
 
-    move m_data = initGame();
+    move m_data = initMove();
     castling c_data = initCastling();
 
     runGame(chessBoard, m_data, c_data);
@@ -38,7 +38,7 @@ int main(void)
     return EXIT_SUCCESS;
 }
 
-move initGame(void)
+move initMove(void)
 {
     move m_data;
 
@@ -52,14 +52,8 @@ move initGame(void)
 castling initCastling(void)
 {
     castling c_data;
-
-    c_data.p1_canCast = false;
-    c_data.p2_canCast = false;
-
-    c_data.p1_shortCast = true;
-    c_data.p1_longCast = true;
-    c_data.p2_shortCast = true;
-    c_data.p2_longCast = true;
+    c_data.p1_shortCast = true, c_data.p1_longCast = true;
+    c_data.p2_shortCast = true, c_data.p2_longCast = true;
 
     return c_data;
 }
@@ -182,7 +176,6 @@ move getUserInput(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 move castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data)
 {
     c_data = isCastlingOk(chessBoard, m_data, c_data);
-    c_data.p1_canCast = c_data.p2_canCast = false; 
 
     if (chessBoard[m_data.y_sel][m_data.x_sel] != 'W' &&
         chessBoard[m_data.y_sel][m_data.x_sel] != 'w')
