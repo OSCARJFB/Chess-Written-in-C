@@ -8,7 +8,7 @@
 #include "chess_macros.h"
 #include "chess_structs.h"
 
-move initGame(void);
+move initMove(void);
 
 castling initCastling(void);
 

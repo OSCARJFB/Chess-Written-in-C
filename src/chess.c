@@ -21,7 +21,7 @@ int main(void)
 {
     char chessBoard[SIZE_EIGHT][SIZE_EIGHT] =
         {
-            'R', 'K', 'B', 'Q', 'W', ' ', ' ', 'R',
+            'R', 'K', 'B', 'Q', 'W', 'B', 'K', 'R',
             'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P',
             ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
             ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
@@ -30,7 +30,7 @@ int main(void)
             'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p',
             'r', 'k', 'b', 'q', 'w', 'b', 'k', 'r'};
 
-    move m_data = initGame();
+    move m_data = initMove();
     castling c_data = initCastling();
 
     runGame(chessBoard, m_data, c_data);
@@ -38,13 +38,14 @@ int main(void)
     return EXIT_SUCCESS;
 }
 
-move initGame(void)
+move initMove(void)
 {
     move m_data;
 
     m_data.x_sel = m_data.y_sel = -1;
     m_data.x_mov = m_data.y_mov = -1;
     m_data.playerTurn = true;
+    m_data.isCastlingFlow = false; 
 
     return m_data;
 }
@@ -52,14 +53,8 @@ move initGame(void)
 castling initCastling(void)
 {
     castling c_data;
-
-    c_data.p1_canCast = false;
-    c_data.p2_canCast = false;
-
-    c_data.p1_shortCast = true;
-    c_data.p1_longCast = true;
-    c_data.p2_shortCast = true;
-    c_data.p2_longCast = true;
+    c_data.p1_shortCast = true, c_data.p1_longCast = true;
+    c_data.p2_shortCast = true, c_data.p2_longCast = true;
 
     return c_data;
 }
@@ -182,7 +177,7 @@ move getUserInput(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 move castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data)
 {
     c_data = isCastlingOk(chessBoard, m_data, c_data);
-    c_data.p1_canCast = c_data.p2_canCast = false; 
+    m_data.isCastlingFlow = false; 
 
     if (chessBoard[m_data.y_sel][m_data.x_sel] != 'W' &&
         chessBoard[m_data.y_sel][m_data.x_sel] != 'w')
@@ -204,8 +199,12 @@ move castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, ca
     {
         return m_data;
     }
+    else 
+    {
+        m_data.isCastlingFlow = true; 
+        m_data.playerTurn = m_data.playerTurn == true ? false : true;
+    }
 
-    m_data.playerTurn = m_data.playerTurn == true ? false : true;
     return m_data;
 }
 
@@ -322,7 +321,7 @@ bool tryCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castl
 
     char king = m_data.playerTurn == true ? 'W' : 'w';
     char rook = m_data.playerTurn == true ? 'R' : 'r';
-
+    
     // Execute castling move. 
     if(m_data.x_mov == shortC)
     {
@@ -369,19 +368,18 @@ move executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     int kingX = 0, kingY = 0;
     char target = chessBoard[m_data.y_mov][m_data.x_mov];
 
-    if(gameRules(chessBoard, m_data))
+    if(gameRules(chessBoard, m_data) && !m_data.blocked && !m_data.isCastlingFlow)
     {
         chessBoard[m_data.y_mov][m_data.x_mov] = chessBoard[m_data.y_sel][m_data.x_sel];
         chessBoard[m_data.y_sel][m_data.x_sel] = ' ';
 
-        if (!findTheKing(chessBoard, &kingX, &kingX, m_data.playerTurn))
+        if (!findTheKing(chessBoard, &kingX, &kingY, m_data.playerTurn))
         {
             puts("checkmate: Error Couldn't find the king.");
             exit(EXIT_FAILURE);
         }
 
         m_data.playerTurn = m_data.playerTurn == true ? false : true;
-
         if (isTargetUnderThreat(chessBoard, m_data, kingX, kingY))
         {
             // Reverse the move, since it resulted in the king being under threat. 
@@ -864,7 +862,6 @@ bool findTheKing(char chessBoard[SIZE_EIGHT][SIZE_EIGHT],
             {
                 *kingX = j;
                 *kingY = i;
-
                 return true;
             }
         }
