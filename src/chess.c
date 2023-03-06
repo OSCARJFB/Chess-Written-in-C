@@ -21,7 +21,7 @@ int main(void)
 {
     char chessBoard[SIZE_EIGHT][SIZE_EIGHT] =
         {
-            'R', 'K', 'B', 'Q', 'W', ' ', ' ', 'R',
+            'R', 'K', 'B', 'Q', 'W', 'B', 'K', 'R',
             'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P',
             ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
             ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
@@ -45,6 +45,7 @@ move initMove(void)
     m_data.x_sel = m_data.y_sel = -1;
     m_data.x_mov = m_data.y_mov = -1;
     m_data.playerTurn = true;
+    m_data.isCastlingFlow = false; 
 
     return m_data;
 }
@@ -176,6 +177,7 @@ move getUserInput(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 move castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data)
 {
     c_data = isCastlingOk(chessBoard, m_data, c_data);
+    m_data.isCastlingFlow = false; 
 
     if (chessBoard[m_data.y_sel][m_data.x_sel] != 'W' &&
         chessBoard[m_data.y_sel][m_data.x_sel] != 'w')
@@ -197,8 +199,12 @@ move castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, ca
     {
         return m_data;
     }
+    else 
+    {
+        m_data.isCastlingFlow = true; 
+        m_data.playerTurn = m_data.playerTurn == true ? false : true;
+    }
 
-    m_data.playerTurn = m_data.playerTurn == true ? false : true;
     return m_data;
 }
 
@@ -362,12 +368,12 @@ move executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     int kingX = 0, kingY = 0;
     char target = chessBoard[m_data.y_mov][m_data.x_mov];
 
-    if(gameRules(chessBoard, m_data) && !m_data.blocked)
+    if(gameRules(chessBoard, m_data) && !m_data.blocked && !m_data.isCastlingFlow)
     {
         chessBoard[m_data.y_mov][m_data.x_mov] = chessBoard[m_data.y_sel][m_data.x_sel];
         chessBoard[m_data.y_sel][m_data.x_sel] = ' ';
 
-        if (!findTheKing(chessBoard, &kingX, &kingX, m_data.playerTurn))
+        if (!findTheKing(chessBoard, &kingX, &kingY, m_data.playerTurn))
         {
             puts("checkmate: Error Couldn't find the king.");
             exit(EXIT_FAILURE);
@@ -856,7 +862,6 @@ bool findTheKing(char chessBoard[SIZE_EIGHT][SIZE_EIGHT],
             {
                 *kingX = j;
                 *kingY = i;
-
                 return true;
             }
         }

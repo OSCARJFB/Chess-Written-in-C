@@ -11,6 +11,7 @@ typedef struct move
     int x_sel, y_sel;
     int x_mov, y_mov;
     bool playerTurn, blocked;
+    bool isCastlingFlow; 
 } move;
 
 typedef struct castling
