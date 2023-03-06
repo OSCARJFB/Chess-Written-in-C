@@ -315,7 +315,7 @@ bool tryCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castl
 
     char king = m_data.playerTurn == true ? 'W' : 'w';
     char rook = m_data.playerTurn == true ? 'R' : 'r';
-
+    
     // Execute castling move. 
     if(m_data.x_mov == shortC)
     {
@@ -362,7 +362,7 @@ move executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     int kingX = 0, kingY = 0;
     char target = chessBoard[m_data.y_mov][m_data.x_mov];
 
-    if(gameRules(chessBoard, m_data))
+    if(gameRules(chessBoard, m_data) && !m_data.blocked)
     {
         chessBoard[m_data.y_mov][m_data.x_mov] = chessBoard[m_data.y_sel][m_data.x_sel];
         chessBoard[m_data.y_sel][m_data.x_sel] = ' ';
@@ -374,7 +374,6 @@ move executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
         }
 
         m_data.playerTurn = m_data.playerTurn == true ? false : true;
-
         if (isTargetUnderThreat(chessBoard, m_data, kingX, kingY))
         {
             // Reverse the move, since it resulted in the king being under threat. 
