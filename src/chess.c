@@ -31,9 +31,7 @@ int main(void)
             'r', 'k', 'b', 'q', 'w', 'b', 'k', 'r'};
 
     move m_data = initMove();
-    castling c_data = initCastling();
-
-    runGame(chessBoard, m_data, c_data);
+    runGame(chessBoard, m_data);
 
     return EXIT_SUCCESS;
 }
@@ -46,28 +44,20 @@ move initMove(void)
     m_data.x_mov = m_data.y_mov = -1;
     m_data.playerTurn = true;
     m_data.isCastlingFlow = false; 
+    m_data.p1_shortCast = true, m_data.p1_longCast = true;
+    m_data.p2_shortCast = true, m_data.p2_longCast = true;
 
     return m_data;
 }
 
-castling initCastling(void)
-{
-    castling c_data;
-    c_data.p1_shortCast = true, c_data.p1_longCast = true;
-    c_data.p2_shortCast = true, c_data.p2_longCast = true;
-
-    return c_data;
-}
-
-void runGame(char chessBoard[SIZE_EIGHT][SIZE_EIGHT],
-             move m_data, castling c_data)
+void runGame(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 {
     while (true)
     {
         drawConsole(chessBoard);
         m_data = getUserInput(chessBoard, m_data);
         m_data = isPathBlocked(chessBoard, m_data);
-        m_data = castlingController(chessBoard, m_data, c_data);
+        m_data = castlingController(chessBoard, m_data);
         m_data = executeMove(chessBoard, m_data);
         if (checkmate(chessBoard, m_data))
         {
@@ -174,9 +164,9 @@ move getUserInput(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return m_data;
 }
 
-move castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data)
+move castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 {
-    c_data = isCastlingOk(chessBoard, m_data, c_data);
+    m_data = isCastlingOk(chessBoard, m_data);
     m_data.isCastlingFlow = false; 
 
     if (chessBoard[m_data.y_sel][m_data.x_sel] != 'W' &&
@@ -185,7 +175,7 @@ move castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, ca
         return m_data;
     }
 
-    if (!isCastlingMove(chessBoard, m_data, c_data))
+    if (!isCastlingMove(chessBoard, m_data))
     {
         return m_data;
     }
@@ -195,7 +185,7 @@ move castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, ca
         return m_data;
     }
     
-    if(!tryCastlingMove(chessBoard, m_data, c_data))
+    if(!tryCastlingMove(chessBoard, m_data))
     {
         return m_data;
     }
@@ -208,48 +198,48 @@ move castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, ca
     return m_data;
 }
 
-castling isCastlingOk(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data)
+move isCastlingOk(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 {
     // Player 1, set castling to false if a move has been made.
 
     if (chessBoard[0][4] != 'W')
     {
-        c_data.p1_shortCast = false;
-        c_data.p1_longCast = false;
+        m_data.p1_shortCast = false;
+        m_data.p1_longCast = false;
     }
 
     if (chessBoard[0][7] != 'R')
     {
-        c_data.p1_shortCast = false;
+        m_data.p1_shortCast = false;
     }
 
     if (chessBoard[0][0] != 'R')
     {
-        c_data.p1_longCast = true;
+        m_data.p1_longCast = true;
     }
 
     // Player 2, set castling to false if a move has been made.
 
     if (chessBoard[0][4] != 'w')
     {
-        c_data.p2_shortCast = false;
-        c_data.p2_longCast = false;
+        m_data.p2_shortCast = false;
+        m_data.p2_longCast = false;
     }
 
     if (chessBoard[0][7] != 'r')
     {
-        c_data.p2_shortCast = false;
+        m_data.p2_shortCast = false;
     }
 
     if (chessBoard[0][0] != 'r')
     {
-        c_data.p2_longCast = true;
+        m_data.p2_longCast = true;
     }
 
-    return c_data;
+    return m_data;
 }
 
-bool isCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data)
+bool isCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 {
     const int shortC = 7, longC = 0;
     int column = m_data.playerTurn == true ? 0 : 7;
@@ -257,24 +247,24 @@ bool isCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castli
     // Make sure castling is allowed by checking if any of the required pieces have been moved. 
     if(m_data.playerTurn)
     {
-        if(m_data.x_mov == shortC && !c_data.p1_shortCast)
+        if(m_data.x_mov == shortC && !m_data.p1_shortCast)
         {
             return false; 
         } 
 
-        if(m_data.x_mov == longC && !c_data.p1_longCast)
+        if(m_data.x_mov == longC && !m_data.p1_longCast)
         {
             return false; 
         } 
     }
     else
     {
-        if(m_data.x_mov == shortC && !c_data.p2_shortCast)
+        if(m_data.x_mov == shortC && !m_data.p2_shortCast)
         {
             return false; 
         } 
 
-        if(m_data.x_mov == longC && !c_data.p2_longCast)
+        if(m_data.x_mov == longC && !m_data.p2_longCast)
         {
             return false; 
         } 
@@ -314,7 +304,7 @@ bool isCastlingPathOk(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return false;
 }
 
-bool tryCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data)
+bool tryCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 {
     const int shortC = 7, longC = 0;
     int column = m_data.playerTurn == true ? 0 : 7;
