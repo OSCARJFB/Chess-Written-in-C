@@ -477,7 +477,7 @@ move isPathBlocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
         }
     }
 
-    for (int i = 1; i + 1 < index; ++i)
+    for (int i = 1; i + 1 <= index; ++i)
     {
         if (chessBoard[pathY[i]][pathX[i]] != ' ')
         {
