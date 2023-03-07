@@ -10,10 +10,7 @@
 
 move initMove(void);
 
-castling initCastling(void);
-
-void runGame(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], 
-             move m_data, castling c_data);
+void runGame(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
 void drawConsole(char chessBoard[SIZE_EIGHT][SIZE_EIGHT]);
 
@@ -21,17 +18,17 @@ move getUserInput(char[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
 move isPathBlocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data); 
 
-move castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data);
+move castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
-castling isCastlingOk(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data);
+move isCastlingOk(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
-bool isCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data);
+bool isCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
 bool isCastlingPathOk(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
 bool castlingResultInCheck(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
-bool tryCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data, castling c_data);
+bool tryCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 
 move executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data);
 

@@ -12,12 +12,8 @@ typedef struct move
     int x_mov, y_mov;
     bool playerTurn, blocked;
     bool isCastlingFlow; 
-} move;
-
-typedef struct castling
-{
     bool p1_shortCast, p1_longCast;
     bool p2_shortCast, p2_longCast;
-} castling;
+} move;
 
 #endif // CHESS_STRUCTS_H
