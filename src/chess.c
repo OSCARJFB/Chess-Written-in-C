@@ -21,11 +21,11 @@ int main(void)
 {
     char chessBoard[SIZE_EIGHT][SIZE_EIGHT] =
         {
-            'R', 'K', 'B', 'Q', 'W', 'B', 'K', 'R',
-            'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P',
+            'R', 'K', 'B', 'R', 'W', 'R', 'K', 'R',
+            'P', 'P', 'P', 'P', ' ', 'P', 'P', 'P',
             ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
             ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-            ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+            ' ', ' ', ' ', 'q', ' ', ' ', ' ', ' ',
             ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
             'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p',
             'r', 'k', 'b', 'q', 'w', 'b', 'k', 'r'};
@@ -39,9 +39,7 @@ int main(void)
 move initMove(void)
 {
     move m_data;
-
-    m_data.x_sel = m_data.y_sel = -1;
-    m_data.x_mov = m_data.y_mov = -1;
+    
     m_data.playerTurn = true;
     m_data.isCastlingFlow = false; 
     m_data.p1_shortCast = true, m_data.p1_longCast = true;
@@ -817,12 +815,12 @@ bool checkmate(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 
     if (!findTheKing(chessBoard, &x, &y, m_data.playerTurn))
     {
-        puts("checkmate: Error Couldn't find the king.");
-        exit(EXIT_FAILURE);
+        return false;
     }
 
     if (!isKingInCheck(chessBoard, m_data, x, y))
     {
+        puts("wasn't in check"); 
         return false;
     }
 
@@ -863,6 +861,7 @@ bool findTheKing(char chessBoard[SIZE_EIGHT][SIZE_EIGHT],
 bool isKingInCheck(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
                    int kingX, int kingY)
 {
+    m_data.playerTurn = m_data.playerTurn == true ? false : true; 
     return isTargetUnderThreat(chessBoard, m_data, kingX, kingY);
 }
 
