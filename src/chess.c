@@ -21,11 +21,11 @@ int main(void)
 {
     char chessBoard[SIZE_EIGHT][SIZE_EIGHT] =
         {
-            'R', 'K', 'B', 'R', 'W', 'R', 'K', 'R',
-            'P', 'P', 'P', 'P', ' ', 'P', 'P', 'P',
+            'R', 'K', 'B', 'Q', 'W', 'B', 'K', 'R',
+            'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P',
             ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
             ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-            ' ', ' ', ' ', 'q', ' ', ' ', ' ', ' ',
+            ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
             ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
             'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p',
             'r', 'k', 'b', 'q', 'w', 'b', 'k', 'r'};
@@ -39,9 +39,8 @@ int main(void)
 move initMove(void)
 {
     move m_data;
-    
     m_data.playerTurn = true;
-    m_data.isCastlingFlow = false; 
+    m_data.isCastlingFlow = false, m_data.enPassant = false; 
     m_data.p1_shortCast = true, m_data.p1_longCast = true;
     m_data.p2_shortCast = true, m_data.p2_longCast = true;
 
@@ -57,6 +56,7 @@ void runGame(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
         m_data = isPathBlocked(chessBoard, m_data);
         m_data = castlingController(chessBoard, m_data);
         m_data = executeMove(chessBoard, m_data);
+        m_data = enPassant(chessBoard, m_data); 
         if (checkmate(chessBoard, m_data))
         {
             break;
@@ -94,7 +94,7 @@ move getUserInput(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 
     int key_pressed = 0, sizeOfArray = 0;
 
-    m_data.playerTurn == true ? printf("Player one enter a move:") : printf("Player two enter a move:");
+    m_data.playerTurn ? printf("Player one enter a move:") : printf("Player two enter a move:");
 
     while (key_pressed != ENTER)
     {
@@ -383,6 +383,47 @@ move executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return m_data;
 }
 
+
+move enPassant(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data) 
+{
+    char pawn = m_data.playerTurn ? 'p' : 'P'; 
+    bool lastPlayer = m_data.playerTurn ? false : true;
+    int diff = 0;
+    
+    // Reset EnPassant at the end of each turn. 
+    if(m_data.enPassant)
+    {
+        m_data.enPassant = false;
+    }
+
+    // Is not a piece of type pawn. 
+    if(chessBoard[m_data.y_mov][m_data.x_mov] != pawn)
+    {
+        return m_data;
+    }
+
+    if(lastPlayer)
+    {
+        diff = m_data.y_mov - m_data.y_sel;
+    }
+    else
+    {
+        diff = m_data.y_sel - m_data.y_mov;
+    }
+
+    // Is not a 2 step advance.
+    if(diff != 2 && diff != -2)
+    {
+        return m_data; 
+    }   
+
+    m_data.enPassant = true; 
+    m_data.pawnX = m_data.x_mov; 
+    m_data.pawnY = m_data.y_mov; 
+
+    return m_data; 
+}
+
 int translateLetter(char letter)
 {
     if (letter == 'a' || letter == 'A')
@@ -539,7 +580,7 @@ bool pawn(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
             }
         }
     }
-    else if (!m_data.playerTurn)
+    else
     {
 
         if (m_data.y_sel == 6 && m_data.y_mov == m_data.y_sel - 2 && m_data.x_sel == m_data.x_mov)
@@ -566,7 +607,21 @@ bool pawn(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
         }
     }
 
-    return false;
+    return executeEnPassant(chessBoard, m_data); 
+}
+
+bool executeEnPassant(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+{
+    int y = m_data.playerTurn ? m_data.pawnY + 1 : m_data.pawnY - 1;
+
+    // Move most target same x coordinate and y coordinate +/- 1. 
+    if(m_data.x_mov == m_data.pawnX && m_data.y_mov == y && m_data.enPassant)
+    {
+        chessBoard[m_data.pawnY][m_data.pawnX] = ' ';
+        return true; 
+    }
+
+    return false; 
 }
 
 bool rook(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
@@ -820,7 +875,6 @@ bool checkmate(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 
     if (!isKingInCheck(chessBoard, m_data, x, y))
     {
-        puts("wasn't in check"); 
         return false;
     }
 
