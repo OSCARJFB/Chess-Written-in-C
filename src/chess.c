@@ -19,7 +19,7 @@ void failed_allocation(void)
 
 int main(void)
 {
-    char chessBoard[SIZE_EIGHT][SIZE_EIGHT] =
+    char chessBoard[8][8] =
         {
             'R', 'K', 'B', 'Q', 'W', 'B', 'K', 'R',
             'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P',
@@ -47,7 +47,7 @@ move initMove(void)
     return m_data;
 }
 
-void runGame(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+void runGame(char chessBoard[8][8], move m_data)
 {
     while (true)
     {
@@ -66,16 +66,16 @@ void runGame(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     printf("\n###### Checkmate ######\n");
 }
 
-void drawConsole(char chessBoard[SIZE_EIGHT][SIZE_EIGHT])
+void drawConsole(char chessBoard[8][8])
 {
     int board_numbers = 1;
 
     system(SYSTEM);
 
-    for (int i = 0; i < SIZE_EIGHT; ++i)
+    for (int i = 0; i < 8; ++i)
     {
         printf("%d.", board_numbers++);
-        for (int j = 0; j < SIZE_EIGHT; ++j)
+        for (int j = 0; j < 8; ++j)
         {
             printf("[%c]", chessBoard[i][j]);
         }
@@ -84,7 +84,7 @@ void drawConsole(char chessBoard[SIZE_EIGHT][SIZE_EIGHT])
     printf("   A  B  C  D  E  F  G  H\n");
 }
 
-move getUserInput(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+move getUserInput(char chessBoard[8][8], move m_data)
 {
     char *userInput = malloc(sizeof(char));
     if (userInput == NULL)
@@ -162,7 +162,7 @@ move getUserInput(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return m_data;
 }
 
-move castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+move castlingController(char chessBoard[8][8], move m_data)
 {
     m_data = isCastlingOk(chessBoard, m_data);
     m_data.isCastlingFlow = false; 
@@ -196,7 +196,7 @@ move castlingController(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return m_data;
 }
 
-move isCastlingOk(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+move isCastlingOk(char chessBoard[8][8], move m_data)
 {
     // Player 1, set castling to false if a move has been made.
 
@@ -237,7 +237,7 @@ move isCastlingOk(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return m_data;
 }
 
-bool isCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+bool isCastlingMove(char chessBoard[8][8], move m_data)
 {
     const int shortC = 7, longC = 0;
     int column = m_data.playerTurn == true ? 0 : 7;
@@ -280,7 +280,7 @@ bool isCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return false;
 }
 
-bool isCastlingPathOk(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+bool isCastlingPathOk(char chessBoard[8][8], move m_data)
 {
     const int shortC = 7, longC = 0;
 
@@ -302,7 +302,7 @@ bool isCastlingPathOk(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return false;
 }
 
-bool tryCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+bool tryCastlingMove(char chessBoard[8][8], move m_data)
 {
     const int shortC = 7, longC = 0;
     int column = m_data.playerTurn == true ? 0 : 7;
@@ -351,7 +351,7 @@ bool tryCastlingMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return true; 
 }
 
-move executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+move executeMove(char chessBoard[8][8], move m_data)
 {
     int kingX = 0, kingY = 0;
     char target = chessBoard[m_data.y_mov][m_data.x_mov];
@@ -384,7 +384,7 @@ move executeMove(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
 }
 
 
-move enPassant(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data) 
+move enPassant(char chessBoard[8][8], move m_data) 
 {
     char pawn = m_data.playerTurn ? 'p' : 'P'; 
     bool lastPlayer = m_data.playerTurn ? false : true;
@@ -464,7 +464,7 @@ int translateLetter(char letter)
     }
 }
 
-move isPathBlocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+move isPathBlocked(char chessBoard[8][8], move m_data)
 {
     int index = 0;
     int x = m_data.x_sel, y = m_data.y_sel;
@@ -519,7 +519,7 @@ move isPathBlocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return m_data;
 }
 
-bool gameRules(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+bool gameRules(char chessBoard[8][8], move m_data)
 {
     if ((m_data.playerTurn && isUpperOrLower(chessBoard[m_data.y_sel][m_data.x_sel])) ||
         (!m_data.playerTurn && !isUpperOrLower(chessBoard[m_data.y_sel][m_data.x_sel])))
@@ -553,7 +553,7 @@ bool gameRules(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return false;
 }
 
-bool pawn(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+bool pawn(char chessBoard[8][8], move m_data)
 {
     if (m_data.playerTurn)
     {
@@ -610,7 +610,7 @@ bool pawn(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return executeEnPassant(chessBoard, m_data); 
 }
 
-bool executeEnPassant(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+bool executeEnPassant(char chessBoard[8][8], move m_data)
 {
     int y = m_data.playerTurn ? m_data.pawnY + 1 : m_data.pawnY - 1;
 
@@ -624,7 +624,7 @@ bool executeEnPassant(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return false; 
 }
 
-bool rook(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+bool rook(char chessBoard[8][8], move m_data)
 {
     bool moveIsOK = false;
 
@@ -653,7 +653,7 @@ bool rook(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return false;
 }
 
-bool knight(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+bool knight(char chessBoard[8][8], move m_data)
 {
     if (m_data.y_mov == m_data.y_sel + 2 && (m_data.x_mov == m_data.x_sel + 1 || m_data.x_mov == m_data.x_sel - 1))
     {
@@ -675,7 +675,7 @@ bool knight(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return false;
 }
 
-bool bishop(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+bool bishop(char chessBoard[8][8], move m_data)
 {
     int differenceX = 0, differenceY = 0;
 
@@ -705,7 +705,7 @@ bool bishop(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return targetStatus(chessBoard, m_data);
 }
 
-bool queen(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+bool queen(char chessBoard[8][8], move m_data)
 {
     int differenceX = 0, differenceY = 0;
 
@@ -752,7 +752,7 @@ bool queen(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return false;
 }
 
-bool king(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+bool king(char chessBoard[8][8], move m_data)
 {
     bool moveIsOK = false;
 
@@ -797,15 +797,15 @@ bool king(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return false;
 }
 
-bool isTargetUnderThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
+bool isTargetUnderThreat(char chessBoard[8][8], move m_data,
                          int x, int y)
 {
     m_data.x_mov = x, m_data.y_mov = y;
     m_data.blocked = true;
 
-    for (int i = 0; i < SIZE_EIGHT; ++i)
+    for (int i = 0; i < 8; ++i)
     {
-        for (int j = 0; j < SIZE_EIGHT; ++j)
+        for (int j = 0; j < 8; ++j)
         {
             m_data.y_sel = i, m_data.x_sel = j;
 
@@ -827,7 +827,7 @@ bool isTargetUnderThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
     return false;
 }
 
-bool targetStatus(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+bool targetStatus(char chessBoard[8][8], move m_data)
 {
     if (m_data.playerTurn == true)
     {
@@ -864,7 +864,7 @@ bool isUpperOrLower(char letter)
     return result;
 }
 
-bool checkmate(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
+bool checkmate(char chessBoard[8][8], move m_data)
 {
     int x = 0, y = 0;
 
@@ -891,14 +891,14 @@ bool checkmate(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data)
     return true;
 }
 
-bool findTheKing(char chessBoard[SIZE_EIGHT][SIZE_EIGHT],
+bool findTheKing(char chessBoard[8][8],
                  int *kingX, int *kingY, bool playerTurn)
 {
     char king = playerTurn == true ? 'W' : 'w';
 
-    for (int i = 0; i < SIZE_EIGHT; ++i)
+    for (int i = 0; i < 8; ++i)
     {
-        for (int j = 0; j < SIZE_EIGHT; ++j)
+        for (int j = 0; j < 8; ++j)
         {
             if (chessBoard[i][j] == king)
             {
@@ -912,17 +912,17 @@ bool findTheKing(char chessBoard[SIZE_EIGHT][SIZE_EIGHT],
     return false;
 }
 
-bool isKingInCheck(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
+bool isKingInCheck(char chessBoard[8][8], move m_data,
                    int kingX, int kingY)
 {
     m_data.playerTurn = m_data.playerTurn == true ? false : true; 
     return isTargetUnderThreat(chessBoard, m_data, kingX, kingY);
 }
 
-bool isKingLocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
+bool isKingLocked(char chessBoard[8][8], move m_data,
                   int kingX, int kingY)
 {
-    for (int i = 0; i < SIZE_EIGHT; ++i)
+    for (int i = 0; i < 8; ++i)
     {
         switch (i)
         {
@@ -979,11 +979,11 @@ bool isKingLocked(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
     return true;
 }
 
-bool isThreatRemoveable(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
+bool isThreatRemoveable(char chessBoard[8][8], move m_data,
                         int kingX, int kingY)
 {
     int threatX = 0, threatY = 0;
-    int pathY[SIZE_EIGHT], pathX[SIZE_EIGHT];
+    int pathY[8], pathX[8];
     int pathSize = 0;
 
     findThreat(chessBoard, m_data.playerTurn, kingX, kingY,
@@ -997,7 +997,7 @@ bool isThreatRemoveable(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
                            pathX, pathY, pathSize);
 }
 
-void findThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], bool playerTurn, int kingX, int kingY,
+void findThreat(char chessBoard[8][8], bool playerTurn, int kingX, int kingY,
                 int *threatX, int *threatY)
 {
     move m_data;
@@ -1007,9 +1007,9 @@ void findThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], bool playerTurn, int ki
     m_data.x_mov = kingX;
     m_data.y_mov = kingY;
 
-    for (int i = 0; i < SIZE_EIGHT; ++i)
+    for (int i = 0; i < 8; ++i)
     {
-        for (int j = 0; j < SIZE_EIGHT; ++j)
+        for (int j = 0; j < 8; ++j)
         {
             m_data.x_sel = j;
             m_data.y_sel = i;
@@ -1028,8 +1028,8 @@ void findThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], bool playerTurn, int ki
     }
 }
 
-int getPath(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
-            int pathX[SIZE_EIGHT], int pathY[SIZE_EIGHT])
+int getPath(char chessBoard[8][8], move m_data,
+            int pathX[8], int pathY[8])
 {
     int pathSize = 0;
     int x = m_data.x_sel, y = m_data.y_sel;
@@ -1072,12 +1072,12 @@ int getPath(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
     return pathSize;
 }
 
-bool removalofThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
-                     int pathX[SIZE_EIGHT], int pathY[SIZE_EIGHT], int pathSize)
+bool removalofThreat(char chessBoard[8][8], move m_data,
+                     int pathX[8], int pathY[8], int pathSize)
 {
-    for (int i = 0; i < SIZE_EIGHT; ++i)
+    for (int i = 0; i < 8; ++i)
     {
-        for (int j = 0; j < SIZE_EIGHT; ++j)
+        for (int j = 0; j < 8; ++j)
         {
             if (isUpperOrLower(chessBoard[i][j]) == m_data.playerTurn)
             {
@@ -1090,7 +1090,7 @@ bool removalofThreat(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], move m_data,
     return true;
 }
 
-bool tryMoveAtPath(char chessBoard[SIZE_EIGHT][SIZE_EIGHT], int pathX[SIZE_EIGHT], int pathY[SIZE_EIGHT],
+bool tryMoveAtPath(char chessBoard[8][8], int pathX[8], int pathY[8],
                    int pathSize, int x, int y, move m_data)
 {
     m_data.playerTurn = m_data.playerTurn == true ? true : false;
