@@ -1,8 +1,0 @@
-{
-    "files.associations": {
-        "random": "c",
-        "limits": "c",
-        "algorithm": "c",
-        "chess_prototypes.h": "c"
-    }
-}

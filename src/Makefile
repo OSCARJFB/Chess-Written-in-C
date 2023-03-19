@@ -3,8 +3,8 @@
 
 # Compile code.
 main: chess.c
-	cc chess.c -o chess
+	cc chess.c -o chess.o
 
 # Remove all object files.
 clean:
-	rm -rf chess
+	rm -rf *.o
