@@ -43,4 +43,6 @@ typedef struct move
     int pawnX, pawnY; 
 } move;
 
+void runGame(void);
+
 #endif // CHESS_H

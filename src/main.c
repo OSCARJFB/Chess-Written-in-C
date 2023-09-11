@@ -6,7 +6,10 @@
 	Copyright (c) 2023 Oscar Bergström
 */
 
+#include "chess.h"
+
 int main(void)
 {
-	return 0; 
+    runGame();
+    return EXIT_SUCCESS;
 }
