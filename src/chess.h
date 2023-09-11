@@ -6,8 +6,25 @@
 	Copyright (c) 2023 Oscar Bergström
 */
 
-#ifndef CHESS_STRUCTS_H
-#define CHESS_STRUCTS_H
+#ifndef CHESS_H
+#define CHESS_H
+
+#define ENTER 10
+
+#ifdef __linux__
+#define SYSTEM "clear"
+#elif _WIN32
+#define SYSTEM "cls"
+#elif __APPLE__
+#define SYSTEM "clear"
+#else 
+#error "Unknown platform"
+#endif
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
 
 typedef struct move
 {   
@@ -26,4 +43,6 @@ typedef struct move
     int pawnX, pawnY; 
 } move;
 
-#endif // CHESS_STRUCTS_H
+void runGame(void);
+
+#endif // CHESS_H
