@@ -6,7 +6,7 @@
 	Copyright (c) 2023 Oscar Bergström
 */
 
-#include "chess.h"
+#include "chess_engine.h"
 
 int main(void)
 {

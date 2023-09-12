@@ -6,8 +6,8 @@
 	Copyright (c) 2023 Oscar Bergström
 */
 
-#ifndef CHESS_H
-#define CHESS_H
+#ifndef CHESS_ENGINE_H
+#define CHESS_ENGINE_H
 
 #define ENTER 10
 
@@ -45,4 +45,4 @@ typedef struct move
 
 void runGame(void);
 
-#endif // CHESS_H
+#endif // CHESS_ENGINE_H
