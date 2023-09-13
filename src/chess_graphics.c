@@ -16,31 +16,45 @@ void initGraphics(void)
 
 static inline void retPiece(int x, int y, char piece)
 {
-	Vector2 v1 = (Vector2){x, y}; 
+	int size = 20; 
+	Color p1 = {150, 55, 0, 255}, p2 = {255, 200, 150, 255}; 
 	switch(piece)
 	{
 		case 'P':
-		     	DrawTriangle(v1, v1, v1,  BLACK);  	
+			DrawRectangle(x, y, size, size, p1); 
 			break; 
 		case 'p':
+			DrawRectangle(x, y, size, size, p2); 
 			break; 
 		case 'R':
+			DrawRectangle(x, y, size, size, p1); 
 			break; 
 		case 'r':
+			DrawRectangle(x, y, size, size, p2); 
 			break; 
 		case 'K':
+			DrawRectangle(x, y, size, size, p1); 
+			break;
+		case 'k':
+			DrawRectangle(x, y, size, size, p2); 
 			break;
 		case 'B':
+			DrawRectangle(x, y, size, size, p1); 
 			break; 
 		case 'b':
+			DrawRectangle(x, y, size, size, p2); 
 			break; 
 		case 'Q':
+			DrawRectangle(x, y, size, size, p1); 
 			break; 
 		case 'q':
+			DrawRectangle(x, y, size, size, p2); 
 			break;
 		case 'W':
+			DrawRectangle(x, y, size, size, p1); 
 			break; 
 		case 'w':
+			DrawRectangle(x, y, size, size, p2); 
 			break;
 	}
 }
@@ -51,7 +65,7 @@ static inline void retPiece(int x, int y, char piece)
 void drawBoard(char chessBoard[8][8])
 {
 	int x = 0, y = 0; 
-	int size = 10; 
+	int size = 40; 
 	bool squareColor = true; 
 
 	while(!WindowShouldClose())
@@ -63,12 +77,12 @@ void drawBoard(char chessBoard[8][8])
 		{
 			for(int j = 0; j < 8; ++j)
 			{
-				squareColor == true ? DrawRectangle(x, y, size, size, RAYWHITE) : 
-						      DrawRectangle(x, y, size, size, BLACK);
-				retPiece(x / 2, y / 2, chessBoard[i][j]); 
+				squareColor == true ? DrawRectangle(x, y, size, size, RAYWHITE) : DrawRectangle(x, y, size, size, BLACK);
+				retPiece(x + 5, y + 5, chessBoard[i][j]); 
 				x += size; 
 				squareColor = squareColor == true ? false : true;  
 			}
+			squareColor = squareColor == true ? false : true;
 			y += size; 
 			x = 0; 
 		}
@@ -79,8 +93,8 @@ void drawBoard(char chessBoard[8][8])
 
 	CloseWindow(); 
 }
-
 /*
+
 int main(void)
 {
 	char chessBoard[8][8] =
