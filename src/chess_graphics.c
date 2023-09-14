@@ -1,3 +1,11 @@
+/*
+	Writen by: Oscar Bergström
+	https://github.com/OSCARJFB
+
+	MIT License
+	Copyright (c) 2023 Oscar Bergström
+*/
+
 #include "chess_graphics.h"
 
 void initGraphics(void)
@@ -8,53 +16,62 @@ void initGraphics(void)
 	SetTargetFPS(30); 
 }
 
+static inline Vector2 selectPiece(bool isPressed, Vector2 coordinates)
+{
+	if(!isPressed)
+	{
+		Vector2 outOfBoard = {-1, -1};
+		return outOfBoard; 
+	}
+	return coordinates;
+}
+
 /**
  * Here we print a piece at a location, 
  * This is dependant on the char (piece type) int (coordinates) paramters. 
  * TODO Add sprites / models for each piece type instead using primitive symbols. 
  */
-
 static inline void retPiece(int x, int y, char piece)
 {
-	int size = 20; 
+	int size = 25; ; 
 	Color p1 = {150, 55, 0, 255}, p2 = {255, 200, 150, 255}; 
 	switch(piece)
 	{
 		case 'P':
-			DrawRectangle(x, y, size, size, p1); 
+			DrawText("P", x, y, size, p1); 
 			break; 
 		case 'p':
-			DrawRectangle(x, y, size, size, p2); 
+			DrawText("P", x, y, size, p2); 
 			break; 
 		case 'R':
-			DrawRectangle(x, y, size, size, p1); 
+			DrawText("R", x, y, size, p1); 
 			break; 
 		case 'r':
-			DrawRectangle(x, y, size, size, p2); 
+			DrawText("r", x, y, size, p2); 
 			break; 
 		case 'K':
-			DrawRectangle(x, y, size, size, p1); 
+			DrawText("K", x, y, size, p1); 
 			break;
 		case 'k':
-			DrawRectangle(x, y, size, size, p2); 
+			DrawText("k", x, y, size, p2); 
 			break;
 		case 'B':
-			DrawRectangle(x, y, size, size, p1); 
+			DrawText("B", x, y, size, p1); 
 			break; 
 		case 'b':
-			DrawRectangle(x, y, size, size, p2); 
+			DrawText("b", x, y, size, p2); 
 			break; 
 		case 'Q':
-			DrawRectangle(x, y, size, size, p1); 
+			DrawText("Q", x, y, size, p1); 
 			break; 
 		case 'q':
-			DrawRectangle(x, y, size, size, p2); 
+			DrawText("q", x, y, size, p2); 
 			break;
 		case 'W':
-			DrawRectangle(x, y, size, size, p1); 
+			DrawText("W", x, y, size, p1); 
 			break; 
 		case 'w':
-			DrawRectangle(x, y, size, size, p2); 
+			DrawText("w", x, y, size, p2); 
 			break;
 	}
 }
@@ -67,17 +84,31 @@ void drawBoard(char chessBoard[8][8])
 	int x = 0, y = 0; 
 	int size = 40; 
 	bool squareColor = true; 
-
+	Color black = {0, 0, 0, 255}, white = {255, 255, 255, 255}, green = {0, 255, 0, 255};
+	Vector2 coordinates = {-1, -1}; 
+	
 	while(!WindowShouldClose())
 	{
 
 		BeginDrawing();	
 		
+		if(IsMouseButtonPressed(0))
+		{
+			coordinates = GetMousePosition(); 
+		}
+
 		for(int i = 0; i < 8; ++i)
 		{
 			for(int j = 0; j < 8; ++j)
 			{
-				squareColor == true ? DrawRectangle(x, y, size, size, RAYWHITE) : DrawRectangle(x, y, size, size, BLACK);
+				squareColor == true ? DrawRectangle(x, y, size, size, white) : DrawRectangle(x, y, size, size, black);
+				
+				if ((coordinates.x > x && coordinates.x < x + size) &&
+				   (coordinates.y > y && coordinates.y < y + size))
+				{
+					 DrawRectangle(x, y, size, size, green);
+				}
+				
 				retPiece(x + 5, y + 5, chessBoard[i][j]); 
 				x += size; 
 				squareColor = squareColor == true ? false : true;  
@@ -93,8 +124,8 @@ void drawBoard(char chessBoard[8][8])
 
 	CloseWindow(); 
 }
-/*
 
+/*
 int main(void)
 {
 	char chessBoard[8][8] =
