@@ -85,22 +85,26 @@ void drawBoard(char chessBoard[8][8])
 	int size = 40; 
 	bool squareColor = true; 
 	Color black = {0, 0, 0, 255}, white = {255, 255, 255, 255}, green = {0, 255, 0, 255};
-
+	Vector2 coordinates = {-1, -1}; 
+	
 	while(!WindowShouldClose())
 	{
 
 		BeginDrawing();	
 		
-		Vector2 coordinates = selectPiece(IsMouseButtonPressed(0), GetMousePosition()), currSquare = {0, 0};
+		if(IsMouseButtonPressed(0))
+		{
+			coordinates = GetMousePosition(); 
+		}
+
 		for(int i = 0; i < 8; ++i)
 		{
 			for(int j = 0; j < 8; ++j)
 			{
 				squareColor == true ? DrawRectangle(x, y, size, size, white) : DrawRectangle(x, y, size, size, black);
 				
-				currSquare.x = x, currSquare.y = y; 
-				if ((coordinates.x > currSquare.x && coordinates.x < currSquare.x) &&
-				   (coordinates.y > currSquare.y && coordinates.y < currSquare.y))
+				if ((coordinates.x > x && coordinates.x < x + size) &&
+				   (coordinates.y > y && coordinates.y < y + size))
 				{
 					 DrawRectangle(x, y, size, size, green);
 				}
@@ -121,6 +125,7 @@ void drawBoard(char chessBoard[8][8])
 	CloseWindow(); 
 }
 
+/*
 int main(void)
 {
 	char chessBoard[8][8] =
@@ -138,3 +143,4 @@ int main(void)
 	initGraphics(); 
 	drawBoard(chessBoard); 
 }
+*/
