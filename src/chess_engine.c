@@ -10,11 +10,7 @@
 
 static move initMove(void);
 static move getUserInput(move m_data);
-static move isPathBlocked(char chessBoard[8][8], move m_data);
-static move castlingController(char chessBoard[8][8], move m_data);
 static move isCastlingOk(char chessBoard[8][8], move m_data);
-static move executeMove(char chessBoard[8][8], move m_data);
-static move enPassant(char chessBoard[8][8], move m_data);
 static bool isCastlingMove(move m_data);
 static bool isCastlingPathOk(char chessBoard[8][8], move m_data);
 static bool tryCastlingMove(char chessBoard[8][8], move m_data);
@@ -31,12 +27,12 @@ static bool bishop(char[8][8], move m_data);
 static bool queen(char[8][8], move m_data);
 static bool king(char[8][8], move m_data);
 static bool targetStatus(char[8][8], move m_data);
-static bool checkmate(char chessBoard[8][8], move m_data);
 static bool findTheKing(char chessBoard[8][8], int *kingX, int *kingY, bool playerTurn);
 static bool isKingLocked(char chessBoard[8][8], move m_data, int kingX, int kingY);
 static bool isThreatRemoveable(char chessBoard[8][8], move m_data, int kingX, int kingY);
 static bool removalofThreat(char chessBoard[8][8], move m_data, int pathX[8], int pathY[8], int pathSize);
 static bool tryMoveAtPath(char chessBoard[8][8], int pathX[8], int pathY[8], int pathSize, int x, int y, move m_data);
+static bool startGUI(void); 
 static inline bool isKingInCheck(char chessBoard[8][8], move m_data, int kingX, int kingY);
 static void findThreat(char chessBoard[8][8], bool playerTurn, int kingX, int kingY, int *foundThreatX);
 static void drawConsole(char chessBoard[8][8]);
@@ -155,7 +151,7 @@ static move getUserInput(move m_data)
 	return m_data;
 }
 
-static move castlingController(char chessBoard[8][8], move m_data)
+move castlingController(char chessBoard[8][8], move m_data)
 {
 	m_data = isCastlingOk(chessBoard, m_data);
 	m_data.isCastlingFlow = false;
@@ -344,7 +340,7 @@ static bool tryCastlingMove(char chessBoard[8][8], move m_data)
 	return true;
 }
 
-static move executeMove(char chessBoard[8][8], move m_data)
+move executeMove(char chessBoard[8][8], move m_data)
 {
 	int kingX = 0, kingY = 0;
 	char target = chessBoard[m_data.y_mov][m_data.x_mov];
@@ -376,7 +372,7 @@ static move executeMove(char chessBoard[8][8], move m_data)
 	return m_data;
 }
 
-static move enPassant(char chessBoard[8][8], move m_data)
+move enPassant(char chessBoard[8][8], move m_data)
 {
 	char pawn = m_data.playerTurn ? 'p' : 'P';
 	bool lastPlayer = m_data.playerTurn ? false : true;
@@ -456,7 +452,7 @@ static int translateLetter(char letter)
 	}
 }
 
-static move isPathBlocked(char chessBoard[8][8], move m_data)
+move isPathBlocked(char chessBoard[8][8], move m_data)
 {
 	int index = 0;
 	int x = m_data.x_sel, y = m_data.y_sel;
@@ -855,7 +851,7 @@ static bool isUpperOrLower(char letter)
 	return result;
 }
 
-static bool checkmate(char chessBoard[8][8], move m_data)
+bool checkmate(char chessBoard[8][8], move m_data)
 {
 	int x = 0, y = 0;
 
@@ -1089,7 +1085,18 @@ static bool tryMoveAtPath(char chessBoard[8][8], int pathX[8], int pathY[8], int
 	return false;
 }
 
-void runGame()
+static bool startGUI(void)
+{
+	puts("Would you like to run chess in term press t");
+	if(getchar() == 116)
+	{
+		return false; 
+	}
+	
+	return true; 
+}
+
+void runGame(void)
 {
 	char chessBoard[8][8] =
 	{
@@ -1104,20 +1111,28 @@ void runGame()
 	};	
 
 	move m_data = initMove();
-
-	while (true)
+	
+	if(startGUI())
 	{
-		drawConsole(chessBoard);
-		m_data = getUserInput(m_data);
-		m_data = isPathBlocked(chessBoard, m_data);
-		m_data = castlingController(chessBoard, m_data);
-		m_data = executeMove(chessBoard, m_data);
-		m_data = enPassant(chessBoard, m_data);
-		if (checkmate(chessBoard, m_data))
-		{
-			break;
-		}
+		initGraphics(); 
+		drawBoard(chessBoard, m_data); 
 	}
-
-	printf("\n###### Checkmate ######\n");
+	else
+	{
+		while (true)
+		{
+			drawConsole(chessBoard);
+			m_data = getUserInput(m_data);
+			m_data = isPathBlocked(chessBoard, m_data);
+			m_data = castlingController(chessBoard, m_data);
+			m_data = executeMove(chessBoard, m_data);
+			m_data = enPassant(chessBoard, m_data);
+			if(checkmate(chessBoard, m_data))
+			{
+				break;
+			}
+		}
+		printf("\n###### Checkmate ######\n");
+	}	
 }
+
