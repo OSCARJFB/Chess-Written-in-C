@@ -25,24 +25,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include "chess_mvData.h"
+#include "chess_graphics.h"
 
-typedef struct move
-{   
-    // Regular move.
-    int x_sel, y_sel;
-    int x_mov, y_mov;
-    bool playerTurn, blocked;
-    
-    // Castling. 
-    bool isCastlingFlow; 
-    bool p1_shortCast, p1_longCast;
-    bool p2_shortCast, p2_longCast;
-    
-    // EnPassant.
-    bool enPassant;
-    int pawnX, pawnY; 
-} move;
-
+move isPathBlocked(char chessBoard[8][8], move m_data);
+move castlingController(char chessBoard[8][8], move m_data);
+move executeMove(char chessBoard[8][8], move m_data);
+move enPassant(char chessBoard[8][8], move m_data);
+bool checkmate(char chessBoard[8][8], move m_data); 
 void runGame(void);
 
 #endif // CHESS_ENGINE_H
