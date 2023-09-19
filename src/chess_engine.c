@@ -1114,8 +1114,7 @@ void runGame(void)
 	
 	if(startGUI())
 	{
-		initGraphics(); 
-		drawBoard(chessBoard, m_data); 
+		gameLoop(chessBoard, m_data); 
 	}
 	else
 	{
