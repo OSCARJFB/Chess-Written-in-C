@@ -151,6 +151,22 @@ static inline void deleteChessMove(Vector2 **source, Vector2 **destination)
 	}
 }
 
+static inline bool mouseMove(char chessBoard[8][8], move m_data)
+{
+	move temp_m_data = m_data;
+	char temp_chessBoard[8][8]; 
+	for(int i = 0; i < 8; ++i)
+	{
+		for(int j = 0; j < 8; ++j)
+		{
+			temp_chessBoard[i][j] = chessBoard[i][j]; 
+		}
+	}
+	temp_m_data = isPathBlocked(temp_chessBoard, temp_m_data); 
+	temp_m_data = executeMove(temp_chessBoard, m_data); 	
+	return m_data.playerTurn != temp_m_data.playerTurn ? true : false; 
+}
+
 static move drawAndExecuteMove(Vector2 *source, Vector2 *destination, move m_data, char chessBoard[8][8])
 {
 	int size = 40; 
@@ -171,7 +187,14 @@ static move drawAndExecuteMove(Vector2 *source, Vector2 *destination, move m_dat
 				}
 			}
 
-			// here we want to add a functionality to when hoovering to check if move is available. 
+			Vector2 mouse = GetMousePosition();
+			if(source != NULL && mouse.x > x && mouse.x < x + size && mouse.y > y && mouse.y < y + size)
+			{
+				m_data.y_mov = i;
+				m_data.x_mov = j; 
+				mouseMove(chessBoard, m_data) ? DrawRectangle(x, y, size, size, CHESS_GREEN) : DrawRectangle(x, y, size, size, CHESS_RED);
+			}
+
 
 			if(destination != NULL)
 			{
@@ -185,6 +208,8 @@ static move drawAndExecuteMove(Vector2 *source, Vector2 *destination, move m_dat
 					m_data = enPassant(chessBoard, m_data);
 				}
 			}
+
+
 			x += size; 
 		}
 		y += size; 
