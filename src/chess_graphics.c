@@ -1,13 +1,16 @@
 /*
-   Writen by: Oscar Bergström
-https://github.com/OSCARJFB
+   	Writen by: Oscar Bergström
+	https://github.com/OSCARJFB
 
-MIT License
-Copyright (c) 2023 Oscar Bergström
+	MIT License
+	Copyright (c) 2023 Oscar Bergström
 */
 
 #include "chess_graphics.h"
 
+/** 
+ * Basic graphics setup for the screen. 
+ */
 void initGraphics(void)
 {	
 	const int width = GetScreenWidth(); 
@@ -20,86 +23,68 @@ void initGraphics(void)
  * This function will draw the board including the pieces at their location.
  * At the moment it will also handle movement and game logic. This should be split later on.
  */
-void drawBoard(void)
+static inline void drawBoard(drawData dd, const int j)
 {
-	int x = 0, y = 0; 
-	int size = 40; 
-	bool squareColor = true; 
+	static bool squareColor = true; 
 
-	for(int i = 0; i < 8; ++i)
+	squareColor == true ? DrawRectangle(dd.x, dd.y, dd.size, dd.size, CHESS_WHITE) : DrawRectangle(dd.x, dd.y, dd.size, dd.size, CHESS_BLACK);
+	squareColor = squareColor == true ? false : true;
+	if(j == 7)
 	{
-		for(int j = 0; j < 8; ++j)
-		{
-			squareColor == true ? DrawRectangle(x, y, size, size, CHESS_WHITE) : DrawRectangle(x, y, size, size, CHESS_BLACK);
-			x += size; 
-			squareColor = squareColor == true ? false : true;
-
-		}
 		squareColor = squareColor == true ? false : true;
-		y += size; 
-		x = 0; 
-	}
+	}	
 }
 
 /**
  * This function will print all the pieces.
  */
-static void drawPieces(char chessBoard[8][8])
+static inline void drawPieces(const char piece, drawData dd)
 {
-	int x = 0, y = 0;
-	int size = 40; 
-
-	for(int i = 0; i < 8; ++i)
+	switch(piece)
 	{
-		for(int j = 0; j < 8; ++j)
-		{
-			switch(chessBoard[i][j])
-			{
 
-				case 'P':
-					DrawText("P", x, y, size, CHESS_P1); 
-					break; 
-				case 'p':
-					DrawText("P", x, y, size, CHESS_P2); 
-					break; 
-				case 'R':
-					DrawText("R", x, y, size, CHESS_P1); 
-					break; 
-				case 'r':
-					DrawText("r", x, y, size, CHESS_P2); 
-					break; 
-				case 'K':
-					DrawText("K", x, y, size, CHESS_P1); 
-					break;
-				case 'k':
-					DrawText("k", x, y, size, CHESS_P2); 
-					break;
-				case 'B':
-					DrawText("B", x, y, size, CHESS_P1); 
-					break; 
-				case 'b':
-					DrawText("b", x, y, size, CHESS_P2); 
-					break; 
-				case 'Q':
-					DrawText("Q", x, y, size, CHESS_P1); 
-					break; 
-				case 'q':
-					DrawText("q", x, y, size, CHESS_P2); 
-					break;
-				case 'W':
-					DrawText("W", x, y, size, CHESS_P1); 
-					break; 
-				case 'w':
-					DrawText("w", x, y, size, CHESS_P2); 
-					break;
-			}
-			x += size; 
-		}
-		y += size; 
-		x = 0;
+		case 'P':
+			DrawText("P", dd.x, dd.y, dd.size, CHESS_P1); 
+			break; 
+		case 'p':
+			DrawText("P", dd.x, dd.y, dd.size, CHESS_P2); 
+			break; 
+		case 'R':
+			DrawText("R", dd.x, dd.y, dd.size, CHESS_P1); 
+			break; 
+		case 'r':
+			DrawText("r", dd.x, dd.y, dd.size, CHESS_P2); 
+			break; 
+		case 'K':
+			DrawText("K", dd.x, dd.y, dd.size, CHESS_P1); 
+			break;
+		case 'k':
+			DrawText("k", dd.x, dd.y, dd.size, CHESS_P2); 
+			break;
+		case 'B':
+			DrawText("B", dd.x, dd.y, dd.size, CHESS_P1); 
+			break; 
+		case 'b':
+			DrawText("b", dd.x, dd.y, dd.size, CHESS_P2); 
+			break; 
+		case 'Q':
+			DrawText("Q", dd.x, dd.y, dd.size, CHESS_P1); 
+			break; 
+		case 'q':
+			DrawText("q", dd.x, dd.y, dd.size, CHESS_P2); 
+			break;
+		case 'W':
+			DrawText("W", dd.x, dd.y, dd.size, CHESS_P1); 
+			break; 
+		case 'w':
+			DrawText("w", dd.x, dd.y, dd.size, CHESS_P2); 
+			break;
 	}
 }
 
+/**
+ * Read for a mouse click, store the result of the position once the click is made in a v2. 
+ */
 static inline Vector2 readMouseClick(void)
 {
 	if(IsMouseButtonPressed(0))
@@ -110,6 +95,10 @@ static inline Vector2 readMouseClick(void)
 	return (Vector2){-1, -1}; // No valid selection. 
 }
 
+/**
+ * Get mouse position on click, store the value in a v2 pointer.
+ * First add data to source then to destination. 
+ */
 void getMove(Vector2 **source, Vector2 **destination, Vector2 mouseClick)
 {
 	if(mouseClick.x == -1 && mouseClick.y == -1)
@@ -141,7 +130,10 @@ void getMove(Vector2 **source, Vector2 **destination, Vector2 mouseClick)
 	}
 }
 
-static inline void deleteChessMove(Vector2 **source, Vector2 **destination)
+/**
+ * Once a move is done, free allocataded space and set the pointer to NULL. 
+ */
+static void deleteChessMove(Vector2 **source, Vector2 **destination)
 {
 	if(*source != NULL && *destination != NULL)
 	{
@@ -151,10 +143,23 @@ static inline void deleteChessMove(Vector2 **source, Vector2 **destination)
 	}
 }
 
-static inline bool mouseMove(char chessBoard[8][8], move m_data)
+/**
+ * Executes a fake chess move, then checks the result.
+ * If the move is valid paint the square at mouse position green else paint it red.
+ * TODO This function will currently not work on enpassant and castling.  
+ */
+static inline move mouseMove(char chessBoard[8][8], move m_data, Vector2 *source,
+		drawData dd, int i, int j)
 {
+	if(source == NULL)
+	{
+		return m_data; 
+	}
+
+	Vector2 mouse = GetMousePosition();
 	move temp_m_data = m_data;
-	char temp_chessBoard[8][8]; 
+	char temp_chessBoard[8][8];
+
 	for(int i = 0; i < 8; ++i)
 	{
 		for(int j = 0; j < 8; ++j)
@@ -162,77 +167,85 @@ static inline bool mouseMove(char chessBoard[8][8], move m_data)
 			temp_chessBoard[i][j] = chessBoard[i][j]; 
 		}
 	}
+
+	m_data.y_mov = i;
+	m_data.x_mov = j;
 	temp_m_data = isPathBlocked(temp_chessBoard, temp_m_data); 
 	temp_m_data = executeMove(temp_chessBoard, m_data); 	
-	return m_data.playerTurn != temp_m_data.playerTurn ? true : false; 
-}
-
-static move drawAndExecuteMove(Vector2 *source, Vector2 *destination, move m_data, char chessBoard[8][8])
-{
-	int size = 40; 
-	int x = 0, y = 0; 
-
-	for(int i = 0; i < 8; ++i)
+	bool isValidMove = m_data.playerTurn != temp_m_data.playerTurn ? true : false; 
+	
+	if(mouse.x > dd.x && mouse.x < dd.x + dd.size && mouse.y > dd.y && mouse.y < dd.y + dd.size)
 	{
-		for(int j = 0; j < 8; ++j)
-		{
-
-			if(source != NULL)
-			{
-				if (source->x > x && source->x < x + size && source->y > y && source->y < y + size)
-				{
-					m_data.y_sel = i; 
-					m_data.x_sel = j; 
-					DrawRectangle(x, y, size, size, CHESS_GREEN);
-				}
-			}
-
-			Vector2 mouse = GetMousePosition();
-			if(source != NULL && mouse.x > x && mouse.x < x + size && mouse.y > y && mouse.y < y + size)
-			{
-				m_data.y_mov = i;
-				m_data.x_mov = j; 
-				mouseMove(chessBoard, m_data) ? DrawRectangle(x, y, size, size, CHESS_GREEN) : DrawRectangle(x, y, size, size, CHESS_RED);
-			}
-
-
-			if(destination != NULL)
-			{
-				if (destination->x > x && destination->x < x + size && destination->y > y && destination->y < y + size)
-				{
-					m_data.y_mov = i;
-					m_data.x_mov = j; 
-					m_data = isPathBlocked(chessBoard, m_data);
-					m_data = castlingController(chessBoard, m_data);
-					m_data = executeMove(chessBoard, m_data);
-					m_data = enPassant(chessBoard, m_data);
-				}
-			}
-
-
-			x += size; 
-		}
-		y += size; 
-		x = 0;
+	 
+		isValidMove ? DrawRectangle(dd.x, dd.y, dd.size, dd.size, CHESS_GREEN) : DrawRectangle(dd.x, dd.y, dd.size, dd.size, CHESS_RED);
 	}
+	
 	return m_data; 
 }
 
+/**
+ * Paint current selected chess square green and execute a chess move if valid.  
+ */
+static inline move drawAndExecuteMove(Vector2 *source, Vector2 *destination, move m_data, 
+		char chessBoard[8][8], drawData dd, int i, int j)
+{
+	if(source != NULL)
+	{
+		if (source->x > dd.x && source->x < dd.x + dd.size && source->y > dd.y && source->y < dd.y + dd.size)
+		{
+			m_data.y_sel = i; 
+			m_data.x_sel = j; 
+			DrawRectangle(dd.x, dd.y, dd.size, dd.size, CHESS_GREEN);
+		}
+	}
+
+	if(destination != NULL)
+	{
+		if (destination->x > dd.x && destination->x < dd.x + dd.size && destination->y > dd.y && destination->y < dd.y + dd.size)
+		{
+			m_data.y_mov = i;
+			m_data.x_mov = j; 
+			m_data = isPathBlocked(chessBoard, m_data);
+			m_data = castlingController(chessBoard, m_data);
+			m_data = executeMove(chessBoard, m_data);
+			m_data = enPassant(chessBoard, m_data);
+		}
+	}
+
+	return m_data; 
+}
+
+/**
+ * Main game loop. 
+ */
 void gameLoop(char chessBoard[8][8], move m_data)
 {
 	Vector2 *source = NULL, *destination = NULL;
+	drawData dd = {0, 0, 40}; 
 	initGraphics(); 
 	while(!WindowShouldClose())
 	{
-		BeginDrawing();	
-		drawBoard();	
-		Vector2 mouseClick = readMouseClick(); 
-		getMove(&source, &destination, mouseClick);
-		m_data = drawAndExecuteMove(source, destination, m_data, chessBoard);
+		BeginDrawing();
 		deleteChessMove(&source, &destination);
-		drawPieces(chessBoard);
+		Vector2 mouseClick = readMouseClick();
+		getMove(&source, &destination, mouseClick);
+		for(int i = 0; i < 8; ++i)
+		{
+			for(int j = 0; j < 8; ++j)
+			{
+				drawBoard(dd, j);	
+				m_data = drawAndExecuteMove(source, destination, m_data, 
+						chessBoard, dd, i, j);
+				mouseMove(chessBoard, m_data, source,
+						dd, i, j); 
+				drawPieces(chessBoard[i][j], dd);
+				dd.x += dd.size;
+			}
+			dd.y += dd.size; 
+			dd.x = 0;
+		}
+		dd.y = 0; 
 		EndDrawing(); 
 	}
-
 }
 

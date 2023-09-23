@@ -15,6 +15,12 @@
 #define CHESS_P1 (Color){150, 55, 0, 255}
 #define CHESS_P2 (Color){255, 200, 150, 255}
 
+typedef struct drawData
+{
+	int x, y; 
+	int size;
+} drawData; 
+
 void gameLoop(char chessBoard[8][8], move m_data);
 
 #endif  // CHESS_GRAPHICS_H
