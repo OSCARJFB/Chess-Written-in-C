@@ -28,11 +28,12 @@
 #include "chess_mvData.h"
 #include "chess_graphics.h"
 
+move initMove(void);
 move isPathBlocked(char chessBoard[8][8], move m_data);
 move castlingController(char chessBoard[8][8], move m_data);
 move executeMove(char chessBoard[8][8], move m_data);
 move enPassant(char chessBoard[8][8], move m_data);
 bool checkmate(char chessBoard[8][8], move m_data); 
-void runGame(void);
+void runFromConsole(void);
 
 #endif // CHESS_ENGINE_H

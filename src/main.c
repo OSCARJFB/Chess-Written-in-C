@@ -10,6 +10,6 @@
 
 int main(void)
 {
-    runGame();
+    mainMenu();
     return EXIT_SUCCESS;
 }

@@ -8,7 +8,6 @@
 
 #include "chess_engine.h"
 
-static move initMove(void);
 static move getUserInput(move m_data);
 static move isCastlingOk(char chessBoard[8][8], move m_data);
 static bool isCastlingMove(move m_data);
@@ -32,7 +31,6 @@ static bool isKingLocked(char chessBoard[8][8], move m_data, int kingX, int king
 static bool isThreatRemoveable(char chessBoard[8][8], move m_data, int kingX, int kingY);
 static bool removalofThreat(char chessBoard[8][8], move m_data, int pathX[8], int pathY[8], int pathSize);
 static bool tryMoveAtPath(char chessBoard[8][8], int pathX[8], int pathY[8], int pathSize, int x, int y, move m_data);
-static bool startGUI(void); 
 static inline bool isKingInCheck(char chessBoard[8][8], move m_data, int kingX, int kingY);
 static void findThreat(char chessBoard[8][8], bool playerTurn, int kingX, int kingY, int *foundThreatX);
 static void drawConsole(char chessBoard[8][8]);
@@ -45,7 +43,7 @@ static void failed_allocation(void)
 	exit(EXIT_FAILURE);
 }
 
-static move initMove(void)
+move initMove(void)
 {
 	move m_data;
 	m_data.playerTurn = true;
@@ -463,11 +461,6 @@ move isPathBlocked(char chessBoard[8][8], move m_data)
 		m_data.blocked = false;
 		return m_data;
 	}
-
-	/**
-	 *  Important 2d arrays are reversed from the regular conception of x and y in algebra.
-	 *  x, y thus become y, x when indexed. hence pathY must be iterated before pathX.
-	 */
 
 	while (x != m_data.x_mov || y != m_data.y_mov)
 	{
@@ -1085,18 +1078,11 @@ static bool tryMoveAtPath(char chessBoard[8][8], int pathX[8], int pathY[8], int
 	return false;
 }
 
-static bool startGUI(void)
-{
-	puts("Would you like to run chess in term press t");
-	if(getchar() == 116)
-	{
-		return false; 
-	}
-	
-	return true; 
-}
 
-void runGame(void)
+/**
+ * Will run just the base engine in console. 
+ */
+void runFromConsole(void)
 {
 	char chessBoard[8][8] =
 	{
@@ -1111,27 +1097,19 @@ void runGame(void)
 	};	
 
 	move m_data = initMove();
-	
-	if(startGUI())
+	while (true)
 	{
-		gameLoop(chessBoard, m_data); 
-	}
-	else
-	{
-		while (true)
+		drawConsole(chessBoard);
+		m_data = getUserInput(m_data);
+		m_data = isPathBlocked(chessBoard, m_data);
+		m_data = castlingController(chessBoard, m_data);
+		m_data = executeMove(chessBoard, m_data);
+		m_data = enPassant(chessBoard, m_data);
+		if(checkmate(chessBoard, m_data))
 		{
-			drawConsole(chessBoard);
-			m_data = getUserInput(m_data);
-			m_data = isPathBlocked(chessBoard, m_data);
-			m_data = castlingController(chessBoard, m_data);
-			m_data = executeMove(chessBoard, m_data);
-			m_data = enPassant(chessBoard, m_data);
-			if(checkmate(chessBoard, m_data))
-			{
-				break;
-			}
+			break;
 		}
-		printf("\n###### Checkmate ######\n");
-	}	
+	}
+	printf("\n###### Checkmate ######\n");
 }
 
